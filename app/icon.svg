@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="rm-bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#DC2626" />
+      <stop offset="60%" stop-color="#B91C1C" />
+      <stop offset="100%" stop-color="#991B1B" />
+    </linearGradient>
+
+    <!-- Gold Accent Gradient -->
+    <linearGradient id="rm-gold-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FEF08A" />
+      <stop offset="50%" stop-color="#FACC15" />
+      <stop offset="100%" stop-color="#EAB308" />
+    </linearGradient>
+
+    <!-- Warm Glow Gradient -->
+    <linearGradient id="rm-glow-grad" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#FBBF24" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#DC2626" stop-opacity="0.2" />
+    </linearGradient>
+
+    <!-- Cloche Silver/Gold Plate Gradient -->
+    <linearGradient id="rm-plate-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="35%" stop-color="#FEF08A" />
+      <stop offset="100%" stop-color="#EAB308" />
+    </linearGradient>
+
+    <!-- Inner Shadow / Drop Shadow -->
+    <filter id="rm-shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#450A0A" flood-opacity="0.35" />
+    </filter>
+  </defs>
+
+  <!-- Squircle Base Container -->
+  <rect width="512" height="512" rx="128" fill="url(#rm-bg-grad)" />
+
+  <!-- Outer Ring Trim (Gold) -->
+  <rect x="16" y="16" width="480" height="480" rx="112" stroke="url(#rm-gold-grad)" stroke-width="10" stroke-opacity="0.85" fill="none" />
+
+  <!-- Content Group with Drop Shadow -->
+  <g filter="url(#rm-shadow)">
+    <!-- Steam Aroma Wisps (Top) -->
+    <path d="M 216 110 C 206 90, 226 70, 216 50" stroke="url(#rm-gold-grad)" stroke-width="12" stroke-linecap="round" fill="none" opacity="0.9" />
+    <path d="M 256 120 C 244 95, 268 75, 256 45" stroke="url(#rm-gold-grad)" stroke-width="14" stroke-linecap="round" fill="none" />
+    <path d="M 296 110 C 286 90, 306 70, 296 50" stroke="url(#rm-gold-grad)" stroke-width="12" stroke-linecap="round" fill="none" opacity="0.9" />
+
+    <!-- Cloche Knob / Handle -->
+    <circle cx="256" cy="150" r="22" fill="url(#rm-gold-grad)" />
+    <ellipse cx="256" cy="144" rx="14" ry="7" fill="#FFFFFF" opacity="0.6" />
+    <path d="M 246 168 L 266 168 L 262 186 L 250 186 Z" fill="url(#rm-gold-grad)" />
+
+    <!-- Cloche Dome (Serving Cover) -->
+    <path d="M 112 300 C 112 195, 176 178, 256 178 C 336 178, 400 195, 400 300 Z" fill="url(#rm-plate-grad)" />
+
+    <!-- Cloche Dome Highlight Curve -->
+    <path d="M 148 285 C 148 215, 192 196, 256 196" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" fill="none" opacity="0.75" />
+
+    <!-- Chef Hat Touch / Crown Motif on Dome -->
+    <g transform="translate(256, 252) scale(0.9)">
+      <!-- Crossed Fork and Knife in Gold/Red Silhouette -->
+      <path d="M -30 -30 L 30 30" stroke="#991B1B" stroke-width="8" stroke-linecap="round" />
+      <path d="M 30 -30 L -30 30" stroke="#991B1B" stroke-width="8" stroke-linecap="round" />
+    </g>
+
+    <!-- Base Platter Tray Rim -->
+    <rect x="80" y="300" width="352" height="34" rx="17" fill="url(#rm-gold-grad)" />
+    <rect x="94" y="304" width="324" height="10" rx="5" fill="#FFFFFF" opacity="0.5" />
+
+    <!-- Platter Under-Base / Stand -->
+    <path d="M 128 334 L 160 366 L 352 366 L 384 334 Z" fill="#991B1B" opacity="0.9" stroke="url(#rm-gold-grad)" stroke-width="6" />
+
+    <!-- Resto Mayo Text Banner / Monogram Ribbon -->
+    <g transform="translate(256, 418)">
+      <!-- Banner Background Pill -->
+      <rect x="-160" y="-32" width="320" height="64" rx="32" fill="#FEF08A" stroke="#EAB308" stroke-width="4" />
+      
+      <!-- Brand Text -->
+      <text x="-7" y="12" font-family="'Poppins', 'Arial Black', sans-serif" font-size="34" font-weight="900" text-anchor="middle" fill="#991B1B" letter-spacing="1">RESTO</text>
+      <text x="82" y="12" font-family="'Poppins', 'Arial Black', sans-serif" font-size="34" font-weight="900" text-anchor="middle" fill="#EAB308" letter-spacing="1">MAYO</text>
+    </g>
+  </g>
+</svg>
+

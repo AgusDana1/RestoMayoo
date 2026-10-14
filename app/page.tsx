@@ -1,69 +1,419 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import Link from "next/link";
+import Navbar from "../components/Navbar";
+import TableSelectModal from "../components/TableSelectModal";
+import OpeningScene from "../components/OpeningScene";
+import { useCart } from "../context/CartContext";
+
+interface Category {
+  id: number;
+  name: string;
+}
+
+interface Product {
+  id: number;
+  category_id: number;
+  name: string;
+  description?: string | null;
+  price: number | string;
+  image?: string | null;
+  is_available: boolean;
+  category?: Category;
+}
+
+export default function HomePage() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [isTableModalOpen, setIsTableModalOpen] = useState<boolean>(false);
+  const [editingNoteItem, setEditingNoteItem] = useState<{ id: number; name: string; notes: string } | null>(null);
+
+  const {
+    cart,
+    addToCart,
+    updateQuantity,
+    updateNotes,
+    totalItems,
+    totalAmount,
+    tableCode,
+    customerName,
+  } = useCart();
+
+  // Fetch initial data
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [prodRes, catRes] = await Promise.all([
+        fetch("/api/products"),
+        fetch("/api/categories"),
+      ]);
+
+      if (prodRes.ok) {
+        const prodData = await prodRes.json();
+        setProducts(prodData);
+      }
+      if (catRes.ok) {
+        const catData = await catRes.json();
+        setCategories(catData);
+      }
+    } catch (e) {
+      console.error("Error fetching menu data", e);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // Filter products by category & search
+  const filteredProducts = useMemo(() => {
+    return products.filter((p) => {
+      const matchCategory =
+        selectedCategory === "all" || p.category_id.toString() === selectedCategory;
+      const matchSearch =
+        !searchQuery.trim() ||
+        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase()));
+      return matchCategory && matchSearch;
+    });
+  }, [products, selectedCategory, searchQuery]);
+
+  const formatRupiah = (amount: number | string) => {
+    return `Rp ${Number(amount).toLocaleString("id-ID")}`;
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen flex flex-col bg-[#FFFDF5] pb-24 sm:pb-28">
+      {/* Splash Intro */}
+      <OpeningScene />
+
+      {/* Navigation - Clean and without admin shortcut */}
+      <Navbar onSelectTableClick={() => setIsTableModalOpen(true)} />
+
+      {/* Table Select Modal */}
+      <TableSelectModal
+        isOpen={isTableModalOpen}
+        onClose={() => setIsTableModalOpen(false)}
+      />
+
+      {/* Main Container */}
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 flex-1 w-full">
+        
+        {/* Banner Section - Appetizing Red & Yellow Food Banner (Responsive for Phone & Desktop) */}
+        <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-r from-red-700 via-red-600 to-amber-600 text-white p-4 sm:p-10 mb-5 sm:mb-8 shadow-lg shadow-red-700/20 border-2 border-yellow-400">
+          <div className="absolute right-0 top-0 bottom-0 w-2/3 opacity-25 pointer-events-none bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-yellow-300 via-yellow-400 to-transparent"></div>
+          
+          <div className="relative z-10 max-w-2xl space-y-2 sm:space-y-3.5">
+            <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider bg-yellow-400 text-red-950 shadow-md">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-600 animate-ping"></span>
+              <span>🌶️ Menu Spesial &amp; Gorengan Mayo Lumer 🧀</span>
+            </div>
+
+            <h1 className="text-xl sm:text-4xl lg:text-5xl font-black font-poppins tracking-tight text-white drop-shadow-md">
+              Selamat Datang di <span className="text-yellow-300 drop-shadow-lg">Resto Mayo</span>
+            </h1>
+
+            <p className="text-[11px] sm:text-base text-yellow-50 font-medium leading-relaxed drop-shadow-xs line-clamp-2 sm:line-clamp-none">
+              Sensasi kuliner lezat nusantara: Risoles mayo keju lumer renyah, nasi goreng autentik, dimsum mentai bakar, dan aneka minuman segar yang menggugah selera!
+            </p>
+
+            {/* Table status banner if not set */}
+            {!tableCode ? (
+              <div className="pt-1 sm:pt-2">
+                <button
+                  onClick={() => setIsTableModalOpen(true)}
+                  className="inline-flex items-center space-x-1.5 sm:space-x-2 px-3.5 py-2 sm:px-5 sm:py-3 rounded-xl sm:rounded-2xl bg-yellow-400 hover:bg-yellow-300 text-red-950 font-black text-xs sm:text-sm shadow-md transition-all active:scale-95 cursor-pointer"
+                >
+                  <span className="text-sm sm:text-base">🪑</span>
+                  <span>Pilih Meja Santap</span>
+                  <span>&rarr;</span>
+                </button>
+              </div>
+            ) : (
+              <div className="pt-1 inline-flex items-center space-x-1.5 px-3 py-1 rounded-xl bg-red-900/60 border border-yellow-400/50 text-[11px] sm:text-xs text-yellow-200 font-bold backdrop-blur-xs">
+                <span>📍 Meja: <strong className="text-yellow-300 font-black">{tableCode}</strong></span>
+                <span>•</span>
+                <span>👤 Pemesan: <strong className="text-white">{customerName || "Pelanggan"}</strong></span>
+              </div>
+            )}
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
+
+        {/* Filter & Search Bar */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 mb-5 sm:mb-8">
+          
+          {/* Category Tabs */}
+          <div className="flex items-center space-x-1.5 sm:space-x-2 overflow-x-auto pb-1.5 md:pb-0 scrollbar-none">
+            <button
+              onClick={() => setSelectedCategory("all")}
+              className={`px-3.5 py-1.5 sm:px-5 sm:py-2.5 rounded-xl sm:rounded-2xl text-[11px] sm:text-sm font-black transition-all whitespace-nowrap cursor-pointer ${
+                selectedCategory === "all"
+                  ? "bg-gradient-to-r from-red-600 to-red-700 text-white border-2 border-yellow-400 shadow-sm scale-102"
+                  : "bg-white text-gray-700 hover:bg-yellow-50/70 border border-amber-200"
+              }`}
+            >
+              🍽️ Semua ({products.length})
+            </button>
+
+            {categories.map((cat) => {
+              const isSelected = selectedCategory === cat.id.toString();
+              const count = products.filter((p) => p.category_id === cat.id).length;
+              const emoji = cat.name.toLowerCase().includes("minum") ? "🥤" : cat.name.toLowerCase().includes("dimsum") ? "🥟" : "🍛";
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id.toString())}
+                  className={`px-3.5 py-1.5 sm:px-5 sm:py-2.5 rounded-xl sm:rounded-2xl text-[11px] sm:text-sm font-black transition-all whitespace-nowrap cursor-pointer ${
+                    isSelected
+                      ? "bg-gradient-to-r from-red-600 to-red-700 text-white border-2 border-yellow-400 shadow-sm scale-102"
+                      : "bg-white text-gray-700 hover:bg-yellow-50/70 border border-amber-200"
+                  }`}
+                >
+                  {emoji} {cat.name} ({count})
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Search Box */}
+          <div className="relative w-full md:w-72">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Cari menu hidangan..."
+              className="w-full pl-9 pr-8 py-2 rounded-xl sm:rounded-2xl bg-white border border-amber-200 text-xs sm:text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-yellow-300 shadow-2xs font-medium"
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            <svg
+              className="w-3.5 h-3.5 text-amber-500 absolute left-3 top-2.5 sm:top-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-2 text-xs text-amber-700 hover:text-red-700 font-bold"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
         </div>
+
+        {/* Product Cards Grid - 2 columns on mobile, 3-4 on desktop */}
+        {loading ? (
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-6">
+            {[...Array(8)].map((_, idx) => (
+              <div key={idx} className="bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-4 border border-amber-100 animate-pulse space-y-2">
+                <div className="w-full h-28 sm:h-44 bg-amber-100/50 rounded-xl sm:rounded-2xl"></div>
+                <div className="h-3.5 bg-amber-100 rounded-md w-3/4"></div>
+                <div className="h-2.5 bg-amber-100 rounded-md w-full hidden sm:block"></div>
+                <div className="h-5 bg-amber-100 rounded-md w-1/2"></div>
+              </div>
+            ))}
+          </div>
+        ) : filteredProducts.length === 0 ? (
+          <div className="text-center py-12 bg-white rounded-2xl sm:rounded-3xl border border-amber-200 p-6 shadow-xs">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 rounded-2xl bg-yellow-100 text-red-700 flex items-center justify-center text-2xl sm:text-3xl">
+              🍳
+            </div>
+            <h3 className="text-base sm:text-lg font-black text-red-950 font-poppins">Menu tidak ditemukan</h3>
+            <p className="text-xs text-amber-800 mt-1">Coba gunakan kata kunci lain atau pilih kategori yang berbeda.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-6">
+            {filteredProducts.map((product) => {
+              const cartItem = cart.find((item) => item.id === product.id);
+              const inCart = Boolean(cartItem);
+
+              return (
+                <div
+                  key={product.id}
+                  className="bg-white rounded-2xl sm:rounded-3xl border border-amber-100 hover:border-yellow-400 shadow-2xs hover:shadow-md transition-all duration-200 flex flex-col overflow-hidden group"
+                >
+                  {/* Image only (No absolute category label as requested) */}
+                  <div className="relative h-28 sm:h-48 w-full overflow-hidden bg-amber-50">
+                    <img
+                      src={product.image || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&q=80"}
+                      alt={product.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+
+                    {!product.is_available && (
+                      <div className="absolute inset-0 bg-red-950/70 backdrop-blur-2xs flex items-center justify-center p-2 text-center">
+                        <span className="px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-black uppercase text-white bg-red-600 shadow-md border border-yellow-300">
+                          Habis
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Body Content */}
+                  <div className="p-2.5 sm:p-4 flex-1 flex flex-col justify-between space-y-2 sm:space-y-3">
+                    <div>
+                      <h3 className="font-bold sm:font-black text-xs sm:text-base text-gray-900 group-hover:text-red-700 transition-colors font-poppins line-clamp-1">
+                        {product.name}
+                      </h3>
+                      <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5 sm:mt-1 line-clamp-1 sm:line-clamp-2 leading-tight sm:leading-relaxed">
+                        {product.description || "Menu lezat racikan spesial Resto Mayo."}
+                      </p>
+                    </div>
+
+                    <div className="pt-2 border-t border-amber-100 flex items-center justify-between gap-1">
+                      <div>
+                        <span className="text-[8px] sm:text-[10px] text-amber-700 font-bold block uppercase tracking-wider">Harga</span>
+                        <span className="text-xs sm:text-base font-black text-red-600 font-poppins">
+                          {formatRupiah(product.price)}
+                        </span>
+                      </div>
+
+                      {/* Add / Quantity Buttons - Compact for mobile */}
+                      <div>
+                        {!inCart ? (
+                          <button
+                            disabled={!product.is_available}
+                            onClick={() => {
+                              addToCart({
+                                id: product.id,
+                                name: product.name,
+                                price: Number(product.price),
+                                image: product.image,
+                                categoryName: product.category?.name,
+                              });
+                            }}
+                            className="inline-flex items-center space-x-1 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-black text-[11px] sm:text-xs shadow-xs active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer border border-yellow-400/40"
+                          >
+                            <span className="text-yellow-300 font-bold">+</span>
+                            <span>Pesan</span>
+                          </button>
+                        ) : (
+                          <div className="flex items-center space-x-1 bg-yellow-50 p-0.5 sm:p-1 rounded-xl border border-yellow-400">
+                            <button
+                              onClick={() => updateQuantity(product.id, -1)}
+                              className="w-5 h-5 sm:w-6 sm:h-6 rounded-lg bg-white text-red-700 font-black text-xs flex items-center justify-center hover:bg-red-50 shadow-2xs border border-amber-200 cursor-pointer"
+                            >
+                              -
+                            </button>
+                            <span className="w-4 sm:w-5 text-center font-black text-[11px] sm:text-xs text-red-900 font-poppins">
+                              {cartItem?.quantity}
+                            </span>
+                            <button
+                              onClick={() => updateQuantity(product.id, 1)}
+                              className="w-5 h-5 sm:w-6 sm:h-6 rounded-lg bg-red-600 text-white font-black text-xs flex items-center justify-center hover:bg-red-700 shadow-2xs cursor-pointer"
+                            >
+                              +
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Quick note indicator if item in cart */}
+                    {inCart && (
+                      <button
+                        onClick={() =>
+                          setEditingNoteItem({
+                            id: product.id,
+                            name: product.name,
+                            notes: cartItem?.notes || "",
+                          })
+                        }
+                        className="text-[10px] text-amber-800 hover:text-red-700 text-left flex items-center space-x-1 pt-1 border-t border-amber-100 font-medium cursor-pointer"
+                      >
+                        <span className="text-amber-500">📝</span>
+                        <span className="truncate">
+                          {cartItem?.notes ? `Catatan: "${cartItem.notes}"` : "+ Catatan koki"}
+                        </span>
+                      </button>
+                    )}
+
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
       </main>
+
+      {/* Floating Bottom Cart Bar - Minimalist & Compact for Phone */}
+      {totalItems > 0 && (
+        <div className="fixed bottom-3 sm:bottom-6 inset-x-0 z-40 max-w-xl mx-auto px-3 sm:px-4">
+          <div className="bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white rounded-2xl sm:rounded-3xl p-2.5 sm:p-4 shadow-xl shadow-red-700/30 border-2 border-yellow-400 flex items-center justify-between backdrop-blur-md animate-in slide-in-from-bottom-3 duration-200">
+            <div className="flex items-center space-x-2 sm:space-x-3.5">
+              <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-yellow-400 text-red-950 font-black text-xs sm:text-base flex items-center justify-center shadow-md border-2 border-white shrink-0">
+                {totalItems}
+              </div>
+              <div>
+                <span className="text-[9px] sm:text-[10px] text-yellow-300 font-bold uppercase tracking-wider block">
+                  Pesanan Terpilih
+                </span>
+                <span className="text-xs sm:text-lg font-black font-poppins text-white">
+                  {formatRupiah(totalAmount)}
+                </span>
+              </div>
+            </div>
+
+            <Link
+              href="/cart"
+              className="inline-flex items-center space-x-1.5 px-3 py-1.5 sm:px-5 sm:py-2.5 rounded-xl sm:rounded-2xl bg-yellow-400 hover:bg-yellow-300 text-red-950 font-black text-xs sm:text-sm shadow-md transition-all active:scale-95 border border-yellow-200 cursor-pointer"
+            >
+              <span>Keranjang</span>
+              <span>&rarr;</span>
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* Note Editing Modal */}
+      {editingNoteItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-2xs">
+          <div className="bg-white rounded-2xl sm:rounded-3xl max-w-md w-full p-4 sm:p-6 shadow-2xl border-2 border-yellow-400 space-y-3.5">
+            <h3 className="font-black text-sm sm:text-base text-red-950 font-poppins">
+              Catatan: <span className="text-red-600">{editingNoteItem.name}</span>
+            </h3>
+            <textarea
+              rows={3}
+              value={editingNoteItem.notes}
+              onChange={(e) =>
+                setEditingNoteItem({ ...editingNoteItem, notes: e.target.value })
+              }
+              placeholder="Contoh: Ekstra pedas, saus dipisah, tanpa bawang..."
+              className="w-full p-2.5 rounded-xl border border-amber-200 text-xs sm:text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-yellow-300"
+            />
+            <div className="flex space-x-2">
+              <button
+                type="button"
+                onClick={() => setEditingNoteItem(null)}
+                className="flex-1 py-2 px-3 rounded-xl border border-gray-300 text-gray-700 font-bold text-xs cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  updateNotes(editingNoteItem.id, editingNoteItem.notes);
+                  setEditingNoteItem(null);
+                }}
+                className="flex-1 py-2 px-3 rounded-xl bg-gradient-to-r from-red-600 to-red-700 text-white font-black text-xs shadow-md border border-yellow-400 cursor-pointer"
+              >
+                Simpan Catatan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
