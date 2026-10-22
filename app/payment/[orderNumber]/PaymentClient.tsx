@@ -57,7 +57,13 @@ export default function PaymentClient({ orderNumber }: { orderNumber: string }) 
 
   useEffect(() => {
     fetchOrder();
-    const interval = setInterval(fetchOrder, 5000);
+    const interval = setInterval(() => {
+      // Pause polling if user switched apps or locked mobile screen to save battery & CPU
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") {
+        return;
+      }
+      fetchOrder();
+    }, 5000);
     return () => clearInterval(interval);
   }, [fetchOrder]);
 
@@ -227,6 +233,7 @@ export default function PaymentClient({ orderNumber }: { orderNumber: string }) 
                     <img
                       src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=RESTOMAYO-${order.order_number}-${order.total_amount}`}
                       alt="QRIS Code"
+                      decoding="async"
                       className="w-40 h-40 sm:w-48 sm:h-48 mx-auto rounded-xl"
                     />
                   </div>

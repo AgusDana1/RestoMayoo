@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useDeferredValue } from "react";
 import Link from "next/link";
 import Navbar from "../components/Navbar";
 import TableSelectModal from "../components/TableSelectModal";
 import OpeningScene from "../components/OpeningScene";
 import { useCart } from "../context/CartContext";
+import { getOptimizedImageUrl } from "../lib/image";
 
 interface Category {
   id: number;
@@ -71,18 +72,20 @@ export default function HomePage() {
     fetchData();
   }, [fetchData]);
 
-  // Filter products by category & search
+  const deferredSearchQuery = useDeferredValue(searchQuery);
+
+  // Filter products by category & search (deferred for 60fps mobile responsiveness)
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
       const matchCategory =
         selectedCategory === "all" || p.category_id.toString() === selectedCategory;
       const matchSearch =
-        !searchQuery.trim() ||
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase()));
+        !deferredSearchQuery.trim() ||
+        p.name.toLowerCase().includes(deferredSearchQuery.toLowerCase()) ||
+        (p.description && p.description.toLowerCase().includes(deferredSearchQuery.toLowerCase()));
       return matchCategory && matchSearch;
     });
-  }, [products, selectedCategory, searchQuery]);
+  }, [products, selectedCategory, deferredSearchQuery]);
 
   const formatRupiah = (amount: number | string) => {
     return `Rp ${Number(amount).toLocaleString("id-ID")}`;
@@ -239,13 +242,15 @@ export default function HomePage() {
               return (
                 <div
                   key={product.id}
-                  className="bg-white rounded-2xl sm:rounded-3xl border border-amber-100 hover:border-yellow-400 shadow-2xs hover:shadow-md transition-all duration-200 flex flex-col overflow-hidden group"
+                  className="menu-grid-card bg-white rounded-2xl sm:rounded-3xl border border-amber-100 hover:border-yellow-400 shadow-2xs hover:shadow-md transition-all duration-200 flex flex-col overflow-hidden group"
                 >
-                  {/* Image only (No absolute category label as requested) */}
+                  {/* Image only (lazy loaded and async decoded for lightweight mobile running) */}
                   <div className="relative h-28 sm:h-48 w-full overflow-hidden bg-amber-50">
                     <img
-                      src={product.image || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&q=80"}
+                      src={getOptimizedImageUrl(product.image)}
                       alt={product.name}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
 
@@ -348,7 +353,7 @@ export default function HomePage() {
 
       {/* Floating Bottom Cart Bar - Minimalist & Compact for Phone */}
       {totalItems > 0 && (
-        <div className="fixed bottom-3 sm:bottom-6 inset-x-0 z-40 max-w-xl mx-auto px-3 sm:px-4">
+        <div className="fixed bottom-3 sm:bottom-6 inset-x-0 z-40 max-w-xl mx-auto px-3 sm:px-4 gpu-accelerated">
           <div className="bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white rounded-2xl sm:rounded-3xl p-2.5 sm:p-4 shadow-xl shadow-red-700/30 border-2 border-yellow-400 flex items-center justify-between backdrop-blur-md animate-in slide-in-from-bottom-3 duration-200">
             <div className="flex items-center space-x-2 sm:space-x-3.5">
               <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-yellow-400 text-red-950 font-black text-xs sm:text-base flex items-center justify-center shadow-md border-2 border-white shrink-0">

@@ -64,7 +64,12 @@ export default function KitchenPage() {
 
   useEffect(() => {
     fetchKitchenOrders();
-    const interval = setInterval(fetchKitchenOrders, 5000);
+    const interval = setInterval(() => {
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") {
+        return;
+      }
+      fetchKitchenOrders();
+    }, 5000);
     return () => clearInterval(interval);
   }, [fetchKitchenOrders]);
 

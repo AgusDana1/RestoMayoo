@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCart } from "../../context/CartContext";
 import RestoMayoLogo from "../../components/RestoMayoLogo";
+import { getOptimizedImageUrl } from "../../lib/image";
 
 export default function CartPage() {
   const router = useRouter();
@@ -122,8 +123,10 @@ export default function CartPage() {
                   <div key={item.id} className="p-3 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 hover:bg-resto-yellow-50/20 transition-colors">
                     <div className="flex items-center space-x-3 sm:space-x-4">
                       <img
-                        src={item.image || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300&q=80"}
+                        src={getOptimizedImageUrl(item.image)}
                         alt={item.name}
+                        loading="lazy"
+                        decoding="async"
                         className="w-14 h-14 sm:w-20 sm:h-20 rounded-xl sm:rounded-2xl object-cover shrink-0 bg-resto-yellow-50 border border-resto-yellow-200/60 shadow-2xs"
                       />
                       <div className="space-y-0.5 sm:space-y-1">

@@ -35,7 +35,7 @@ export default function OpeningScene() {
   return (
     <div
       onClick={handleDismiss}
-      className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-br from-[#2D0508] via-[#4A0A0F] to-[#1A0204] text-white overflow-hidden transition-all duration-700 ease-out select-none cursor-pointer ${
+      className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-br from-[#2D0508] via-[#4A0A0F] to-[#1A0204] text-white overflow-hidden transition-all duration-700 ease-out select-none cursor-pointer gpu-accelerated ${
         animatingOut ? "opacity-0 scale-105 pointer-events-none" : "opacity-100 scale-100"
       }`}
     >

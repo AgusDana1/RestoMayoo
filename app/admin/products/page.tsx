@@ -215,6 +215,8 @@ export default function AdminProductsPage() {
                         <img
                           src={product.image || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100&q=80"}
                           alt={product.name}
+                          loading="lazy"
+                          decoding="async"
                           className="w-12 h-12 rounded-2xl object-cover bg-resto-yellow-50 shrink-0 border border-resto-yellow-200/80 shadow-2xs"
                         />
                         <div>

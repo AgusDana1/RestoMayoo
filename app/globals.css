@@ -138,3 +138,50 @@ body {
 .anim-opening-aura {
   animation: openingAuraPulse 3s ease-in-out infinite;
 }
+
+/* ==========================================================================
+   Mobile & Tablet Performance Optimizations (Ultra-Lightweight & Smooth)
+   ========================================================================== */
+
+/* Eliminate 300ms mobile touch delay & remove blue tap flash */
+button, a, input, select, textarea {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Mobile & Tablet hardware-accelerated GPU compositing for fixed/sticky bars */
+.gpu-accelerated,
+header.sticky,
+.fixed {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform;
+}
+
+/* Rendering containment for menu cards: skips layout/paint for off-screen items */
+.menu-grid-card {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 280px;
+}
+
+/* Native momentum scrolling on iOS and Android */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  overscroll-behavior-y: contain;
+}
+
+/* Responsive image rendering */
+img {
+  image-rendering: auto;
+}
+
+/* Reduced motion preference for battery-saving and low-spec mobile GPUs */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
