@@ -24,6 +24,7 @@ export default function AdminLayout({
     { href: "/admin/orders", label: "Pesanan", icon: "📋" },
     { href: "/admin/products", label: "Produk Menu", icon: "🍔" },
     { href: "/admin/categories", label: "Kategori", icon: "🏷️" },
+    { href: "/admin/qr", label: "QR Meja", icon: "📱" },
   ];
 
   const handleLogout = async () => {

@@ -1,12 +1,51 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback, useDeferredValue } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useDeferredValue, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import Navbar from "../components/Navbar";
 import TableSelectModal from "../components/TableSelectModal";
 import OpeningScene from "../components/OpeningScene";
 import { useCart } from "../context/CartContext";
 import { getOptimizedImageUrl } from "../lib/image";
+
+function TableQrDetector() {
+  const searchParams = useSearchParams();
+  const { tableCode, setCustomerInfo, customerName } = useCart();
+  const [toastMsg, setToastMsg] = useState("");
+
+  useEffect(() => {
+    const paramTable = searchParams.get("table") || searchParams.get("meja");
+    if (paramTable && (!tableCode || tableCode.toLowerCase() !== paramTable.toLowerCase())) {
+      fetch("/api/tables")
+        .then((res) => (res.ok ? res.json() : []))
+        .then((tables: Array<{ id: number; table_code: string; table_number: number }>) => {
+          const matched = tables.find(
+            (t) =>
+              t.table_code.toLowerCase() === paramTable.toLowerCase() ||
+              t.table_number.toString() === paramTable
+          );
+          if (matched) {
+            setCustomerInfo(customerName || "", matched.table_code, matched.id);
+            setToastMsg(`✨ Terhubung otomatis ke Meja ${matched.table_code}!`);
+            setTimeout(() => setToastMsg(""), 5000);
+          }
+        })
+        .catch((e) => console.error("Error auto-detecting table from QR", e));
+    }
+  }, [searchParams, tableCode, customerName, setCustomerInfo]);
+
+  if (!toastMsg) return null;
+
+  return (
+    <div className="fixed top-16 sm:top-20 right-4 z-50 max-w-sm animate-in slide-in-from-top-2 duration-300">
+      <div className="bg-yellow-400 text-red-950 px-4 py-2.5 rounded-2xl shadow-xl font-black text-xs flex items-center space-x-2 border-2 border-red-600">
+        <span className="text-base">🪑</span>
+        <span>{toastMsg}</span>
+      </div>
+    </div>
+  );
+}
 
 interface Category {
   id: number;
@@ -93,6 +132,11 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FFFDF5] pb-24 sm:pb-28">
+      {/* Auto-detect table from QR scan URL (?table=M01) */}
+      <Suspense fallback={null}>
+        <TableQrDetector />
+      </Suspense>
+
       {/* Splash Intro */}
       <OpeningScene />
 
