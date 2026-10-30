@@ -27,7 +27,7 @@ export async function POST(request: Request) {
   // Authentication check
   if (!isAdminAuthenticated(request)) {
     return NextResponse.json(
-      { error: "Akses ditolak: Anda harus login sebagai admin" },
+      { error: "Access denied: You must be logged in as an administrator" },
       { status: 401 }
     );
   }
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
 
     if (!cleanName || cleanName.length < 2) {
       return NextResponse.json(
-        { error: "Nama kategori minimal 2 karakter" },
+        { error: "Category name must be at least 2 characters" },
         { status: 400 }
       );
     }
@@ -51,7 +51,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Error creating category:", error);
     return NextResponse.json(
-      { error: "Gagal menambah kategori atau nama kategori sudah ada" },
+      { error: "Failed to add category or category name already exists" },
       { status: 500 }
     );
   }

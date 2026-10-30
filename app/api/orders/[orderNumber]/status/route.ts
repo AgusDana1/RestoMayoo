@@ -10,7 +10,7 @@ export async function PATCH(
   // Authentication check
   if (!isAdminAuthenticated(request)) {
     return NextResponse.json(
-      { error: "Akses ditolak: Anda harus login sebagai admin" },
+      { error: "Access denied: You must be logged in as an administrator" },
       { status: 401 }
     );
   }
@@ -24,7 +24,7 @@ export async function PATCH(
     const validStatuses = ["pending", "processing", "ready", "completed", "cancelled"];
     if (!validStatuses.includes(status)) {
       return NextResponse.json(
-        { error: "Status pesanan tidak valid" },
+        { error: "Invalid order status" },
         { status: 400 }
       );
     }
@@ -60,7 +60,7 @@ export async function PATCH(
   } catch (error) {
     console.error("Error updating order status:", error);
     return NextResponse.json(
-      { error: "Gagal memperbarui status pesanan" },
+      { error: "Failed to update order status" },
       { status: 500 }
     );
   }

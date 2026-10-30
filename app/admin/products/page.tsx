@@ -100,7 +100,7 @@ export default function AdminProductsPage() {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm("Apakah Anda yakin ingin menghapus produk ini?")) return;
+    if (!confirm("Are you sure you want to delete this menu item?")) return;
     try {
       const res = await fetch(`/api/products/${id}`, { method: "DELETE" });
       if (res.ok) {
@@ -171,13 +171,13 @@ export default function AdminProductsPage() {
         <div>
           <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-resto-yellow-100 text-resto-yellow-900 border border-resto-yellow-300 shadow-2xs mb-2">
             <span>🍔</span>
-            <span>Katalog Makanan &amp; Minuman</span>
+            <span>Food &amp; Beverage Catalog</span>
           </span>
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-stone-900 font-poppins">
-            Manajemen <span className="text-resto-red-700">Produk &amp; Menu</span>
+            Resto Mayo <span className="text-resto-red-700">Menu &amp; Dish Management</span>
           </h1>
           <p className="text-xs sm:text-sm text-stone-500 mt-1">
-            Kelola menu hidangan Resto Mayo, status ketersediaan di etalase, dan harga satuan.
+            Manage Resto Mayo dishes, showcase stock availability, and unit prices.
           </p>
         </div>
 
@@ -186,7 +186,7 @@ export default function AdminProductsPage() {
             onClick={handleOpenAddModal}
             className="inline-flex items-center space-x-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-resto-red-600 via-resto-red-700 to-resto-yellow-600 hover:from-resto-red-700 hover:to-resto-yellow-700 text-white font-bold text-xs shadow-md shadow-resto-red-600/20 transition-all cursor-pointer active:scale-95"
           >
-            <span>+ Tambah Menu Baru</span>
+            <span>+ Add New Dish</span>
           </button>
         </div>
       </div>
@@ -194,17 +194,17 @@ export default function AdminProductsPage() {
       {/* Product List */}
       <div className="bg-white rounded-3xl border border-resto-yellow-200 shadow-xs overflow-hidden">
         {loading ? (
-          <div className="py-20 text-center text-xs text-stone-400">Memuat daftar menu...</div>
+          <div className="py-20 text-center text-xs text-stone-400">Loading dishes list...</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="bg-resto-yellow-50/60 text-stone-600 uppercase font-bold text-[10px] tracking-wider border-b border-resto-yellow-100">
                 <tr>
-                  <th className="py-3.5 px-4">Menu &amp; Foto</th>
-                  <th className="py-3.5 px-4">Kategori</th>
-                  <th className="py-3.5 px-4">Harga Satuan</th>
-                  <th className="py-3.5 px-4">Ketersediaan</th>
-                  <th className="py-3.5 px-4 text-right">Aksi</th>
+                  <th className="py-3.5 px-4">Dish &amp; Photo</th>
+                  <th className="py-3.5 px-4">Category</th>
+                  <th className="py-3.5 px-4">Unit Price</th>
+                  <th className="py-3.5 px-4">Availability</th>
+                  <th className="py-3.5 px-4 text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-resto-yellow-100">
@@ -245,7 +245,7 @@ export default function AdminProductsPage() {
                         }`}
                       >
                         <span className={`w-1.5 h-1.5 rounded-full ${product.is_available ? "bg-emerald-600" : "bg-resto-red-600"}`}></span>
-                        <span>{product.is_available ? "Tersedia" : "Habis"}</span>
+                        <span>{product.is_available ? "Available" : "Sold Out"}</span>
                       </button>
                     </td>
                     <td className="py-3 px-4 text-right space-x-2">
@@ -259,7 +259,7 @@ export default function AdminProductsPage() {
                         onClick={() => handleDelete(product.id)}
                         className="px-3 py-1.5 rounded-xl bg-resto-red-50 hover:bg-resto-red-100 text-resto-red-700 font-bold text-[11px] border border-resto-red-200 cursor-pointer transition-colors"
                       >
-                        Hapus
+                        Delete
                       </button>
                     </td>
                   </tr>
@@ -276,7 +276,7 @@ export default function AdminProductsPage() {
           <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-resto-yellow-200 space-y-4 animate-in zoom-in-95">
             <div className="flex items-center justify-between pb-3 border-b border-resto-yellow-100">
               <h3 className="font-black text-base text-stone-900 font-poppins">
-                {editingProduct ? "Edit Menu Hidangan" : "Tambah Menu Hidangan Baru"}
+                {editingProduct ? "Edit Dish Item" : "Add New Dish Item"}
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -288,20 +288,20 @@ export default function AdminProductsPage() {
 
             <form onSubmit={handleSubmit} className="space-y-4 text-xs">
               <div>
-                <label className="block font-bold text-stone-700 uppercase mb-1">Nama Menu</label>
+                <label className="block font-bold text-stone-700 uppercase mb-1">Dish Name</label>
                 <input
                   type="text"
                   required
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
-                  placeholder="Contoh: Risoles Mayonise Keju Lumer"
+                  placeholder="e.g. Creamy Mozzarella Risoles Mayo"
                   className="w-full px-3.5 py-2.5 rounded-2xl border border-resto-yellow-200 focus:outline-none focus:ring-2 focus:ring-resto-red-500 text-xs bg-white"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-stone-700 uppercase mb-1">Kategori</label>
+                  <label className="block font-bold text-stone-700 uppercase mb-1">Category</label>
                   <select
                     required
                     value={formCategory}
@@ -317,7 +317,7 @@ export default function AdminProductsPage() {
                 </div>
 
                 <div>
-                  <label className="block font-bold text-stone-700 uppercase mb-1">Harga (IDR)</label>
+                  <label className="block font-bold text-stone-700 uppercase mb-1">Price (IDR)</label>
                   <input
                     type="number"
                     required
@@ -331,7 +331,7 @@ export default function AdminProductsPage() {
               </div>
 
               <div>
-                <label className="block font-bold text-stone-700 uppercase mb-1">URL Foto Makanan</label>
+                <label className="block font-bold text-stone-700 uppercase mb-1">Dish Photo URL</label>
                 <input
                   type="url"
                   value={formImage}
@@ -342,12 +342,12 @@ export default function AdminProductsPage() {
               </div>
 
               <div>
-                <label className="block font-bold text-stone-700 uppercase mb-1">Deskripsi Kuliner</label>
+                <label className="block font-bold text-stone-700 uppercase mb-1">Culinary Description</label>
                 <textarea
                   rows={3}
                   value={formDesc}
                   onChange={(e) => setFormDesc(e.target.value)}
-                  placeholder="Jelaskan kelezatan hidangan ini..."
+                  placeholder="Describe the flavors and ingredients of this dish..."
                   className="w-full px-3.5 py-2.5 rounded-2xl border border-resto-yellow-200 focus:outline-none focus:ring-2 focus:ring-resto-red-500 text-xs bg-white"
                 />
               </div>
@@ -361,7 +361,7 @@ export default function AdminProductsPage() {
                   className="w-4 h-4 text-resto-red-600 rounded border-resto-yellow-300 focus:ring-resto-red-500 cursor-pointer"
                 />
                 <label htmlFor="availCheck" className="text-stone-700 font-semibold cursor-pointer">
-                  Menu Tersedia (Dapat dipesan pelanggan)
+                  Available (Customers can order this dish)
                 </label>
               </div>
 
@@ -371,14 +371,14 @@ export default function AdminProductsPage() {
                   onClick={() => setIsModalOpen(false)}
                   className="flex-1 py-2.5 rounded-2xl border border-resto-yellow-200 text-stone-600 font-bold cursor-pointer hover:bg-resto-yellow-50"
                 >
-                  Batal
+                  Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
                   className="flex-1 py-2.5 rounded-2xl bg-gradient-to-r from-resto-red-600 to-resto-red-700 hover:from-resto-red-700 hover:to-resto-red-800 disabled:opacity-50 text-white font-bold shadow-md shadow-resto-red-600/20 cursor-pointer"
                 >
-                  {submitting ? "Menyimpan..." : "Simpan Menu"}
+                  {submitting ? "Saving..." : "Save Dish"}
                 </button>
               </div>
             </form>

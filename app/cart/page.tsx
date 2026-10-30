@@ -48,10 +48,10 @@ export default function CartPage() {
             <div>
               {tableCode ? (
                 <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-bold bg-resto-yellow-100 text-resto-yellow-900 border border-resto-yellow-300 shadow-2xs">
-                  Meja {tableCode}
+                  Table {tableCode}
                 </span>
               ) : (
-                <span className="text-[10px] sm:text-xs text-stone-400 font-medium">Meja di checkout</span>
+                <span className="text-[10px] sm:text-xs text-stone-400 font-medium">Table at checkout</span>
               )}
             </div>
 
@@ -67,20 +67,20 @@ export default function CartPage() {
           <div>
             <div className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-resto-red-50 text-resto-red-700 border border-resto-red-200 mb-2">
               <span>🛒</span>
-              <span>Daftar Santapan Anda</span>
+              <span>Your Dining Cart</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-stone-900 font-poppins">
-              Keranjang Pesanan Resto Mayo
+              Resto Mayo Order Cart
             </h1>
             <p className="text-xs sm:text-sm text-stone-500 mt-1">
-              Periksa kembali hidangan favorit Anda sebelum lanjut ke pembayaran dan proses dapur.
+              Review your favorite dishes before proceeding to checkout and kitchen preparation.
             </p>
           </div>
 
           {cart.length > 0 && (
             <button
               onClick={() => {
-                if (confirm("Apakah Anda yakin ingin mengosongkan keranjang?")) {
+                if (confirm("Are you sure you want to clear your cart?")) {
                   clearCart();
                 }
               }}
@@ -89,7 +89,7 @@ export default function CartPage() {
               <svg className="w-4 h-4 text-resto-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
-              <span>Kosongkan Pesanan</span>
+              <span>Clear Cart</span>
             </button>
           )}
         </div>
@@ -99,16 +99,16 @@ export default function CartPage() {
             <div className="w-20 h-20 mx-auto rounded-3xl bg-resto-yellow-100 text-resto-red-700 flex items-center justify-center text-3xl shadow-xs border border-resto-yellow-200">
               🍜
             </div>
-            <h2 className="text-xl font-bold text-stone-900 font-poppins">Keranjang masih kosong</h2>
+            <h2 className="text-xl font-bold text-stone-900 font-poppins">Your Cart is Empty</h2>
             <p className="text-xs text-stone-500">
-              Anda belum menambahkan makanan atau minuman ke dalam keranjang. Yuk pilih menu lezat sekarang!
+              You haven&apos;t added any dishes or beverages yet. Let&apos;s explore delicious food now!
             </p>
             <div className="pt-2">
               <Link
                 href="/"
                 className="inline-flex items-center space-x-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-resto-red-600 to-resto-red-700 hover:from-resto-red-700 hover:to-resto-red-800 text-white font-bold text-xs shadow-md shadow-resto-red-600/20 transition-all active:scale-95"
               >
-                <span>Buka Menu Resto Mayo</span>
+                <span>Explore Resto Mayo Menu</span>
                 <span>&rarr;</span>
               </Link>
             </div>
@@ -148,7 +148,7 @@ export default function CartPage() {
                                 type="text"
                                 value={tempNotes}
                                 onChange={(e) => setTempNotes(e.target.value)}
-                                placeholder="Tulis catatan (cth: pedas, tanpa es)..."
+                                placeholder="Add note (e.g. spicy, no ice)..."
                                 className="px-2.5 py-1 rounded-xl border border-resto-yellow-300 text-xs focus:outline-none focus:ring-1 focus:ring-resto-red-500 w-full sm:w-64 bg-white"
                               />
                               <button
@@ -158,7 +158,7 @@ export default function CartPage() {
                                 }}
                                 className="px-2.5 py-1 rounded-xl bg-resto-red-700 hover:bg-resto-red-800 text-white text-[10px] sm:text-[11px] font-bold cursor-pointer"
                               >
-                                Simpan
+                                Save
                               </button>
                             </div>
                           ) : (
@@ -171,7 +171,7 @@ export default function CartPage() {
                             >
                               <span className="text-resto-yellow-600">📝</span>
                               <span className="truncate max-w-[200px] sm:max-w-none">
-                                {item.notes ? `"${item.notes}" (Ubah)` : "+ Catatan khusus"}
+                                {item.notes ? `"${item.notes}" (Edit)` : "+ Special note"}
                               </span>
                             </button>
                           )}
@@ -209,7 +209,7 @@ export default function CartPage() {
                       <button
                         onClick={() => removeFromCart(item.id)}
                         className="text-stone-300 hover:text-resto-red-600 p-1 rounded-lg cursor-pointer text-xs sm:text-sm"
-                        title="Hapus"
+                        title="Remove"
                       >
                         ✕
                       </button>
@@ -224,29 +224,29 @@ export default function CartPage() {
               <div className="bg-gradient-to-b from-white to-resto-yellow-50/30 rounded-3xl border border-resto-yellow-200 shadow-md p-6 space-y-6 sticky top-24">
                 <div className="flex items-center justify-between pb-3 border-b border-resto-yellow-200/80">
                   <h2 className="text-base font-bold text-stone-900 font-poppins">
-                    Ringkasan Transaksi
+                    Order Summary
                   </h2>
                   <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-resto-red-100 text-resto-red-700">
-                    {totalItems} Menu
+                    {totalItems} Items
                   </span>
                 </div>
 
                 <div className="space-y-3 text-xs sm:text-sm">
                   <div className="flex justify-between text-stone-600">
-                    <span>Jumlah Item ({totalItems})</span>
+                    <span>Items Total ({totalItems})</span>
                     <span className="font-semibold text-stone-900">{formatRupiah(totalAmount)}</span>
                   </div>
                   <div className="flex justify-between text-stone-600">
-                    <span>Pajak Restoran &amp; PB1</span>
-                    <span className="text-emerald-700 font-bold">Sudah Termasuk</span>
+                    <span>Restaurant Tax (PB1)</span>
+                    <span className="text-emerald-700 font-bold">Included</span>
                   </div>
                   <div className="flex justify-between text-stone-600">
-                    <span>Biaya Layanan Meja</span>
-                    <span className="text-emerald-700 font-bold">Gratis</span>
+                    <span>Table Service Fee</span>
+                    <span className="text-emerald-700 font-bold">Free</span>
                   </div>
 
                   <div className="pt-4 border-t border-resto-yellow-200/80 flex justify-between items-baseline">
-                    <span className="text-sm font-bold text-stone-900">Total Tagihan</span>
+                    <span className="text-sm font-bold text-stone-900">Total Amount</span>
                     <span className="text-xl sm:text-2xl font-black text-resto-red-700 font-poppins">
                       {formatRupiah(totalAmount)}
                     </span>
@@ -257,12 +257,12 @@ export default function CartPage() {
                   onClick={() => router.push("/checkout")}
                   className="w-full py-4 rounded-2xl bg-gradient-to-r from-resto-red-600 via-resto-red-700 to-resto-yellow-600 hover:from-resto-red-700 hover:to-resto-yellow-700 text-white font-bold text-sm shadow-xl shadow-resto-red-600/25 transition-all active:scale-98 flex items-center justify-center space-x-2 cursor-pointer"
                 >
-                  <span>Lanjut ke Pembayaran &rarr;</span>
+                  <span>Proceed to Checkout &rarr;</span>
                 </button>
 
                 <div className="p-3 rounded-2xl bg-resto-yellow-100/70 border border-resto-yellow-200 text-[11px] text-stone-600 text-center leading-relaxed flex items-center space-x-2">
                   <span className="text-base">🍳</span>
-                  <span>Setelah konfirmasi checkout, dapur Resto Mayo akan segera menerima pesanan Anda.</span>
+                  <span>Upon checkout confirmation, the kitchen will immediately prepare your order.</span>
                 </div>
               </div>
             </div>

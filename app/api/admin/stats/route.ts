@@ -6,7 +6,7 @@ export async function GET(request: Request) {
   // Authentication check
   if (!isAdminAuthenticated(request)) {
     return NextResponse.json(
-      { error: "Akses ditolak: Anda harus login sebagai admin" },
+      { error: "Access denied: You must be logged in as an administrator" },
       { status: 401 }
     );
   }

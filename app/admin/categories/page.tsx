@@ -48,13 +48,13 @@ export default function AdminCategoriesPage() {
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Gagal menambah kategori");
+        throw new Error(data.error || "Failed to add category");
       }
 
       setNewCatName("");
       await fetchCategories();
     } catch (err: any) {
-      setErrorMsg(err.message || "Gagal menambah kategori.");
+      setErrorMsg(err.message || "Failed to add category.");
     } finally {
       setSubmitting(false);
     }
@@ -68,13 +68,13 @@ export default function AdminCategoriesPage() {
         <div>
           <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-resto-yellow-100 text-resto-yellow-900 border border-resto-yellow-300 shadow-2xs mb-2">
             <span>🏷️</span>
-            <span>Kategori Menu Etalase</span>
+            <span>Menu Categories</span>
           </span>
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-stone-900 font-poppins">
-            Kategori <span className="text-resto-red-700">Hidangan &amp; Minuman</span>
+            Food &amp; Beverage <span className="text-resto-red-700">Categories</span>
           </h1>
           <p className="text-xs sm:text-sm text-stone-500 mt-1">
-            Kelola pengelompokan menu etalase Resto Mayo (cth: Makanan, Minuman, Dimsum).
+            Manage Resto Mayo menu groups and classifications (e.g. Food, Beverages, Dimsum).
           </p>
         </div>
       </div>
@@ -85,7 +85,7 @@ export default function AdminCategoriesPage() {
         <div className="md:col-span-1">
           <div className="bg-white rounded-3xl border border-resto-yellow-200 shadow-xs p-6 space-y-4">
             <h2 className="text-base font-bold text-stone-900 font-poppins pb-3 border-b border-resto-yellow-100">
-              + Tambah Kategori Baru
+              + Add New Category
             </h2>
 
             {errorMsg && (
@@ -97,14 +97,14 @@ export default function AdminCategoriesPage() {
             <form onSubmit={handleCreateCategory} className="space-y-4 text-xs">
               <div>
                 <label className="block font-bold text-stone-700 uppercase mb-1">
-                  Nama Kategori <span className="text-resto-red-600">*</span>
+                  Category Name <span className="text-resto-red-600">*</span>
                 </label>
                 <input
                   type="text"
                   required
                   value={newCatName}
                   onChange={(e) => setNewCatName(e.target.value)}
-                  placeholder="Contoh: Dessert, Camilan, Kopi..."
+                  placeholder="e.g. Dessert, Snacks, Coffee..."
                   className="w-full px-4 py-3 rounded-2xl border border-resto-yellow-200 text-xs focus:outline-none focus:ring-2 focus:ring-resto-red-500 bg-white"
                 />
               </div>
@@ -114,7 +114,7 @@ export default function AdminCategoriesPage() {
                 disabled={submitting || !newCatName.trim()}
                 className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-resto-red-600 via-resto-red-700 to-resto-yellow-600 hover:from-resto-red-700 hover:to-resto-yellow-700 disabled:opacity-50 text-white font-bold text-xs shadow-md shadow-resto-red-600/20 transition-all cursor-pointer active:scale-95"
               >
-                {submitting ? "Menyimpan..." : "Simpan Kategori"}
+                {submitting ? "Saving..." : "Save Category"}
               </button>
             </form>
           </div>
@@ -124,16 +124,16 @@ export default function AdminCategoriesPage() {
         <div className="md:col-span-2">
           <div className="bg-white rounded-3xl border border-resto-yellow-200 shadow-xs overflow-hidden p-6 space-y-4">
             <h2 className="text-base font-bold text-stone-900 font-poppins pb-3 border-b border-resto-yellow-100 flex items-center justify-between">
-              <span>Daftar Kategori Aktif</span>
+              <span>Active Categories</span>
               <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-resto-yellow-100 text-resto-yellow-900 border border-resto-yellow-300">
-                {categories.length} Kategori
+                {categories.length} Categories
               </span>
             </h2>
 
             {loading ? (
-              <div className="py-12 text-center text-xs text-stone-400">Memuat kategori...</div>
+              <div className="py-12 text-center text-xs text-stone-400">Loading categories...</div>
             ) : categories.length === 0 ? (
-              <div className="py-12 text-center text-xs text-stone-400">Belum ada kategori.</div>
+              <div className="py-12 text-center text-xs text-stone-400">No categories found.</div>
             ) : (
               <div className="divide-y divide-resto-yellow-100">
                 {categories.map((cat) => (
@@ -146,7 +146,7 @@ export default function AdminCategoriesPage() {
                     </div>
 
                     <span className="px-3 py-1 rounded-full text-xs font-semibold bg-resto-yellow-50 text-stone-700 border border-resto-yellow-200">
-                      {cat._count?.products || 0} Menu Terkait
+                      {cat._count?.products || 0} Linked Dishes
                     </span>
                   </div>
                 ))}

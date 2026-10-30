@@ -10,9 +10,9 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Resto Mayo - Restoran Pilihan Bersama",
+  title: "Resto Mayo - Premium Dining & Culinary Experience",
   description:
-    "Resto Mayo - Cita Rasa Autentik & Meresap. Pesan hidangan favorit langsung dari meja Anda.",
+    "Resto Mayo - Authentic & Flavorful Cuisine. Order your favorite dishes directly from your table.",
   icons: {
     icon: [
       { url: "/resto-mayo-logo.svg", type: "image/svg+xml" },
@@ -29,7 +29,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="id" className="h-full antialiased">
+    <html lang="en" className="h-full antialiased">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

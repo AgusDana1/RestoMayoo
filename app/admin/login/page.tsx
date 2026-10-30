@@ -26,12 +26,12 @@ export default function AdminLoginPage() {
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || "Login gagal");
+        throw new Error(data.error || "Login failed");
       }
 
       router.push("/admin/dashboard");
     } catch (err: any) {
-      setErrorMsg(err.message || "Email atau password salah.");
+      setErrorMsg(err.message || "Incorrect email or password.");
     } finally {
       setLoading(false);
     }
@@ -55,7 +55,7 @@ export default function AdminLoginPage() {
           </h1>
 
           <p className="text-xs text-gray-400 font-medium">
-            Masuk ke Panel Administrasi &amp; Kitchen Display
+            Sign in to Restaurant Management &amp; Kitchen Display
           </p>
         </div>
 
@@ -69,7 +69,7 @@ export default function AdminLoginPage() {
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1">
-              Email Administrator
+              Administrator Email
             </label>
             <input
               type="email"
@@ -100,13 +100,13 @@ export default function AdminLoginPage() {
             disabled={loading}
             className="w-full py-3.5 rounded-2xl bg-resto-red-800 hover:bg-resto-red-900 disabled:opacity-50 text-white font-bold text-xs sm:text-sm shadow-md transition-all active:scale-98 cursor-pointer"
           >
-            {loading ? "Memverifikasi..." : "Masuk ke Admin Panel"}
+            {loading ? "Verifying..." : "Sign In to Admin Panel"}
           </button>
         </form>
 
         <div className="text-center pt-2">
           <Link href="/" className="text-xs text-gray-400 hover:text-resto-red-800 transition-colors">
-            &larr; Kembali ke Halaman Menu Pelanggan
+            &larr; Return to Customer Menu
           </Link>
         </div>
 

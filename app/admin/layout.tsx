@@ -20,11 +20,11 @@ export default function AdminLayout({
 
   const navLinks = [
     { href: "/admin/dashboard", label: "Dashboard", icon: "📊" },
-    { href: "/admin/kitchen", label: "Dapur (KDS)", icon: "🍳" },
-    { href: "/admin/orders", label: "Pesanan", icon: "📋" },
-    { href: "/admin/products", label: "Produk Menu", icon: "🍔" },
-    { href: "/admin/categories", label: "Kategori", icon: "🏷️" },
-    { href: "/admin/qr", label: "QR Meja", icon: "📱" },
+    { href: "/admin/kitchen", label: "Kitchen (KDS)", icon: "🍳" },
+    { href: "/admin/orders", label: "Orders", icon: "📋" },
+    { href: "/admin/products", label: "Menu Items", icon: "🍔" },
+    { href: "/admin/categories", label: "Categories", icon: "🏷️" },
+    { href: "/admin/qr", label: "Table QR", icon: "📱" },
   ];
 
   const handleLogout = async () => {
@@ -61,7 +61,7 @@ export default function AdminLayout({
                     </span>
                   </div>
                   <span className="text-[10px] text-stone-400 font-medium hidden sm:block">
-                    Manajemen Restoran &amp; Dapur
+                    Restaurant &amp; Kitchen Management
                   </span>
                 </div>
               </Link>
@@ -95,7 +95,7 @@ export default function AdminLayout({
                 target="_blank"
                 className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl border border-resto-yellow-200 text-stone-700 hover:text-resto-red-700 hover:bg-resto-yellow-50 text-xs font-semibold transition-colors bg-white shadow-2xs"
               >
-                <span>Lihat Menu</span>
+                <span>View Menu</span>
                 <span className="text-xs">↗</span>
               </Link>
 
@@ -104,7 +104,7 @@ export default function AdminLayout({
                 onClick={handleLogout}
                 className="inline-flex items-center space-x-1 px-3 py-2 rounded-xl bg-stone-100 hover:bg-resto-red-50 hover:text-resto-red-700 text-stone-600 text-xs font-semibold transition-colors cursor-pointer"
               >
-                <span>Keluar</span>
+                <span>Logout</span>
               </button>
             </div>
 

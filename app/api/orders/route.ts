@@ -61,7 +61,7 @@ export async function POST(request: Request) {
     if (!rateLimit.allowed) {
       return NextResponse.json(
         {
-          error: "Terlalu banyak permintaan pesanan. Mohon tunggu beberapa saat sebelum memesan kembali.",
+          error: "Too many order requests. Please wait a moment before submitting another order.",
         },
         { status: 429 }
       );
@@ -75,14 +75,14 @@ export async function POST(request: Request) {
 
     if (!rawCustomerName || !isValidCustomerName(rawCustomerName)) {
       return NextResponse.json(
-        { error: "Nama pemesan wajib diisi dengan huruf dan angka (2-50 karakter)" },
+        { error: "Customer name must be between 2 and 50 characters" },
         { status: 400 }
       );
     }
 
     if (!tableIdNum) {
       return NextResponse.json(
-        { error: "Nomor meja tidak valid" },
+        { error: "Invalid table selection" },
         { status: 400 }
       );
     }
@@ -93,14 +93,14 @@ export async function POST(request: Request) {
     });
     if (!table) {
       return NextResponse.json(
-        { error: "Meja santap yang dipilih tidak ditemukan" },
+        { error: "Selected dining table not found" },
         { status: 404 }
       );
     }
 
     if (!Array.isArray(rawItems) || rawItems.length === 0 || rawItems.length > 50) {
       return NextResponse.json(
-        { error: "Pesanan harus memiliki minimal 1 item (maksimal 50 item)" },
+        { error: "Orders must contain between 1 and 50 items" },
         { status: 400 }
       );
     }
@@ -116,7 +116,7 @@ export async function POST(request: Request) {
       const qty = parsePositiveInt(item.quantity);
       if (!pId || !qty || qty > 99) {
         return NextResponse.json(
-          { error: "Item produk atau kuantitas pesanan tidak valid (1-99)" },
+          { error: "Invalid product item or quantity (1-99)" },
           { status: 400 }
         );
       }
@@ -139,10 +139,10 @@ export async function POST(request: Request) {
     const orderItemsData = parsedItems.map((item) => {
       const prod = productMap.get(item.product_id);
       if (!prod) {
-        throw new Error(`Menu #${item.product_id} tidak ditemukan`);
+        throw new Error(`Dish item #${item.product_id} not found`);
       }
       if (!prod.is_available) {
-        throw new Error(`Menu "${prod.name}" sedang habis terjual`);
+        throw new Error(`Dish "${prod.name}" is currently sold out`);
       }
       const price = Number(prod.price);
       const total = price * item.quantity;
@@ -200,7 +200,7 @@ export async function POST(request: Request) {
   } catch (error: any) {
     console.error("Error creating order:", error);
     return NextResponse.json(
-      { error: error.message || "Gagal membuat pesanan" },
+      { error: error.message || "Failed to create order" },
       { status: 500 }
     );
   }

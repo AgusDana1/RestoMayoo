@@ -55,17 +55,17 @@ export default function CheckoutPage() {
     setErrorMsg("");
 
     if (cart.length === 0) {
-      setErrorMsg("Keranjang pesanan Anda kosong.");
+      setErrorMsg("Your order cart is empty.");
       return;
     }
 
     if (!name.trim()) {
-      setErrorMsg("Silakan masukkan nama pemesan.");
+      setErrorMsg("Please enter your name.");
       return;
     }
 
     if (!selectedTableId) {
-      setErrorMsg("Silakan pilih nomor meja Anda.");
+      setErrorMsg("Please select your table number.");
       return;
     }
 
@@ -94,25 +94,25 @@ export default function CheckoutPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || "Gagal memproses pesanan");
+        throw new Error(data.error || "Failed to submit order");
       }
 
       clearCart();
       router.push(`/payment/${data.order_number}`);
     } catch (err: any) {
-      setErrorMsg(err.message || "Terjadi kesalahan saat memproses pesanan.");
+      setErrorMsg(err.message || "An error occurred while processing your order.");
     } finally {
       setSubmitting(false);
     }
   };
 
   const paymentOptions = [
-    { id: "qris", title: "QRIS", desc: "BCA, GoPay, OVO, dll" },
-    { id: "gopay", title: "GoPay", desc: "Dompet Digital" },
-    { id: "dana", title: "DANA", desc: "Dompet Digital" },
-    { id: "shopeepay", title: "ShopeePay", desc: "Dompet Digital" },
-    { id: "bank_transfer", title: "Transfer BRI", desc: "Direct Bank Transfer" },
-    { id: "ovo", title: "OVO", desc: "Dompet Digital" },
+    { id: "qris", title: "QRIS", desc: "BCA, GoPay, OVO, etc." },
+    { id: "gopay", title: "GoPay", desc: "E-Wallet" },
+    { id: "dana", title: "DANA", desc: "E-Wallet" },
+    { id: "shopeepay", title: "ShopeePay", desc: "E-Wallet" },
+    { id: "bank_transfer", title: "BRI Transfer", desc: "Direct Bank Transfer" },
+    { id: "ovo", title: "OVO", desc: "E-Wallet" },
   ];
 
   return (
@@ -132,7 +132,7 @@ export default function CheckoutPage() {
               <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-resto-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
-              <span>Kembali</span>
+              <span>Back</span>
             </Link>
 
             <Link href="/" className="flex items-center space-x-2">
@@ -149,13 +149,13 @@ export default function CheckoutPage() {
         <div className="text-center max-w-xl mx-auto mb-5 sm:mb-8">
           <span className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider bg-resto-yellow-100 text-resto-yellow-900 border border-resto-yellow-300 mb-1.5 shadow-2xs">
             <span>✨</span>
-            <span>Tahap Terakhir Pemesanan</span>
+            <span>Final Ordering Step</span>
           </span>
           <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-stone-900 font-poppins">
-            Konfirmasi Meja &amp; Pembayaran
+            Table Confirmation &amp; Payment
           </h1>
           <p className="text-[11px] sm:text-xs md:text-sm text-stone-500 mt-1">
-            Lengkapi nama pemesan dan nomor meja Anda agar hidangan lezat segera disiapkan.
+            Complete your details and table number so the kitchen can prepare your meal.
           </p>
         </div>
 
@@ -175,20 +175,20 @@ export default function CheckoutPage() {
             <div className="bg-white rounded-2xl sm:rounded-3xl border border-resto-yellow-200/80 shadow-xs p-4 sm:p-6 space-y-3.5 sm:space-y-4">
               <h2 className="text-sm sm:text-base font-bold text-stone-900 font-poppins pb-2.5 sm:pb-3 border-b border-resto-yellow-100 flex items-center space-x-2">
                 <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-resto-red-600 to-resto-red-700 text-resto-yellow-300 text-[10px] sm:text-xs flex items-center justify-center font-black shadow-xs">1</span>
-                <span>Informasi Meja &amp; Pemesan</span>
+                <span>Table &amp; Guest Information</span>
               </h2>
 
               {/* Customer Name */}
               <div>
                 <label className="block text-[11px] sm:text-xs font-bold uppercase tracking-wider text-stone-700 mb-1 font-poppins">
-                  Nama Lengkap Pemesan <span className="text-resto-red-600">*</span>
+                  Guest Full Name <span className="text-resto-red-600">*</span>
                 </label>
                 <input
                   type="text"
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Contoh: Budi Santoso"
+                  placeholder="E.g. John Doe"
                   className="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl border border-resto-yellow-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-resto-red-500 focus:border-resto-yellow-400 transition-all bg-white"
                 />
               </div>
@@ -196,7 +196,7 @@ export default function CheckoutPage() {
               {/* Table Selection */}
               <div>
                 <label className="block text-[11px] sm:text-xs font-bold uppercase tracking-wider text-stone-700 mb-1 font-poppins">
-                  Pilih Nomor Meja Anda <span className="text-resto-red-600">*</span>
+                  Select Your Table Number <span className="text-resto-red-600">*</span>
                 </label>
                 <select
                   required
@@ -204,10 +204,10 @@ export default function CheckoutPage() {
                   onChange={(e) => setSelectedTableId(e.target.value)}
                   className="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl border border-resto-yellow-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-resto-red-500 focus:border-resto-yellow-400 transition-all bg-white text-stone-800 cursor-pointer"
                 >
-                  <option value="">-- Pilih Meja Resto Mayo --</option>
+                  <option value="">-- Choose Resto Mayo Table --</option>
                   {tables.map((t) => (
                     <option key={t.id} value={t.id}>
-                      Meja {t.table_code} (Meja #{t.table_number}) {t.status === "occupied" ? "• Sedang Terisi" : "• Tersedia"}
+                      Table {t.table_code} (Table #{t.table_number}) {t.status === "occupied" ? "• Occupied" : "• Available"}
                     </option>
                   ))}
                 </select>
@@ -218,7 +218,7 @@ export default function CheckoutPage() {
             <div className="bg-white rounded-2xl sm:rounded-3xl border border-resto-yellow-200/80 shadow-xs p-4 sm:p-6 space-y-3.5 sm:space-y-4">
               <h2 className="text-sm sm:text-base font-bold text-stone-900 font-poppins pb-2.5 sm:pb-3 border-b border-resto-yellow-100 flex items-center space-x-2">
                 <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-resto-red-600 to-resto-red-700 text-resto-yellow-300 text-[10px] sm:text-xs flex items-center justify-center font-black shadow-xs">2</span>
-                <span>Pilih Metode Pembayaran</span>
+                <span>Select Payment Method</span>
               </h2>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
@@ -267,10 +267,10 @@ export default function CheckoutPage() {
             <div className="bg-gradient-to-b from-white to-resto-yellow-50/30 rounded-2xl sm:rounded-3xl border border-resto-yellow-200 shadow-md p-4 sm:p-6 space-y-4 sm:space-y-6 sticky top-20 sm:top-24">
               <div className="flex items-center justify-between pb-2.5 sm:pb-3 border-b border-resto-yellow-200/80">
                 <h2 className="text-sm sm:text-base font-bold text-stone-900 font-poppins">
-                  Pesanan Anda ({totalItems})
+                  Your Order ({totalItems})
                 </h2>
                 <span className="text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full bg-resto-yellow-100 text-resto-yellow-900 border border-resto-yellow-300">
-                  Daftar Menu
+                  Menu Items
                 </span>
               </div>
 
@@ -296,11 +296,11 @@ export default function CheckoutPage() {
                   <span className="font-semibold text-stone-900">{formatRupiah(totalAmount)}</span>
                 </div>
                 <div className="flex justify-between text-stone-600">
-                  <span>Pajak &amp; Layanan</span>
-                  <span className="text-emerald-700 font-bold">Termasuk</span>
+                  <span>Tax &amp; Service</span>
+                  <span className="text-emerald-700 font-bold">Included</span>
                 </div>
                 <div className="pt-2.5 sm:pt-3 border-t border-resto-yellow-200/80 flex justify-between items-baseline">
-                  <span className="text-xs sm:text-sm font-bold text-stone-900">Total Pembayaran</span>
+                  <span className="text-xs sm:text-sm font-bold text-stone-900">Total Payment</span>
                   <span className="text-lg sm:text-xl font-black text-resto-red-700 font-poppins">
                     {formatRupiah(totalAmount)}
                   </span>
@@ -314,15 +314,15 @@ export default function CheckoutPage() {
                 className="w-full py-3 sm:py-4 rounded-xl sm:rounded-2xl bg-gradient-to-r from-resto-red-600 via-resto-red-700 to-resto-yellow-600 hover:from-resto-red-700 hover:to-resto-yellow-700 disabled:opacity-50 text-white font-bold text-xs sm:text-sm shadow-xl shadow-resto-red-600/25 transition-all active:scale-98 flex items-center justify-center space-x-2 cursor-pointer"
               >
                 {submitting ? (
-                  <span>Mengirim Pesanan...</span>
+                  <span>Sending Order...</span>
                 ) : (
-                  <span>Kirim Pesanan ke Dapur &rarr;</span>
+                  <span>Send Order to Kitchen &rarr;</span>
                 )}
               </button>
 
               <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-resto-yellow-100/70 border border-resto-yellow-200 text-[9px] sm:text-[10px] text-stone-600 text-center leading-relaxed flex items-center space-x-1.5">
                 <span>🔔</span>
-                <span>Tiket pesanan akan langsung muncul pada layar Kitchen Display System (KDS) koki Resto Mayo.</span>
+                <span>Your order ticket will instantly appear on the chef&apos;s Kitchen Display System (KDS).</span>
               </div>
             </div>
           </div>

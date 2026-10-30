@@ -31,10 +31,10 @@ interface KitchenOrder {
 function getTimeAgo(dateStr: string) {
   const diffMs = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diffMs / 60000);
-  if (mins < 1) return "Baru saja";
-  if (mins < 60) return `${mins} mnt lalu`;
+  if (mins < 1) return "Just now";
+  if (mins < 60) return `${mins}m ago`;
   const hours = Math.floor(mins / 60);
-  return `${hours} jam lalu`;
+  return `${hours}h ago`;
 }
 
 export default function KitchenPage() {
@@ -114,13 +114,13 @@ export default function KitchenPage() {
               Live Kitchen Display System (KDS)
             </span>
             <span className="text-xs text-stone-300">•</span>
-            <span className="text-xs text-stone-500 font-medium">Antrean FIFO (First-In, First-Out)</span>
+            <span className="text-xs text-stone-500 font-medium">FIFO Queue (First-In, First-Out)</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-stone-900 mt-2 font-poppins">
-            Antrean Dapur &amp; <span className="text-resto-red-700">Pengolahan Menu</span>
+            Kitchen Queue &amp; <span className="text-resto-red-700">Order Preparation</span>
           </h1>
           <p className="text-xs sm:text-sm text-stone-500 mt-1">
-            Pantau tiket masakan yang masuk dari meja santap dan perbarui status masak secara langsung.
+            Monitor dish tickets from dining tables and update cooking statuses in real time.
           </p>
         </div>
 
@@ -132,7 +132,7 @@ export default function KitchenPage() {
             <svg className="w-4 h-4 text-resto-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
-            <span>Perbarui Antrean</span>
+            <span>Refresh Queue</span>
           </button>
         </div>
       </div>
@@ -150,13 +150,13 @@ export default function KitchenPage() {
           }`}
         >
           <span className="text-xs font-bold uppercase tracking-wider text-stone-500 block">
-            Total Tiket Dapur
+            Total Kitchen Tickets
           </span>
           <div className="flex items-baseline justify-between mt-1">
             <span className="text-2xl font-black text-stone-900 font-poppins">
               {orders.length}
             </span>
-            <span className="text-xs text-stone-400 font-medium">Tiket Aktif</span>
+            <span className="text-xs text-stone-400 font-medium">Active Tickets</span>
           </div>
         </button>
 
@@ -172,14 +172,14 @@ export default function KitchenPage() {
           <div className="flex items-center space-x-1.5">
             <span className="w-2 h-2 rounded-full bg-resto-yellow-500 animate-ping"></span>
             <span className="text-xs font-bold uppercase tracking-wider text-resto-yellow-900">
-              Menunggu Dimasak
+              Awaiting Cooking
             </span>
           </div>
           <div className="flex items-baseline justify-between mt-1">
             <span className="text-2xl font-black text-resto-yellow-700 font-poppins">
               {pendingOrders.length}
             </span>
-            <span className="text-xs text-stone-400 font-medium">Tiket Baru</span>
+            <span className="text-xs text-stone-400 font-medium">New Tickets</span>
           </div>
         </button>
 
@@ -195,14 +195,14 @@ export default function KitchenPage() {
           <div className="flex items-center space-x-1.5">
             <span className="w-2 h-2 rounded-full bg-amber-600"></span>
             <span className="text-xs font-bold uppercase tracking-wider text-amber-900">
-              Sedang Dimasak
+              Currently Cooking
             </span>
           </div>
           <div className="flex items-baseline justify-between mt-1">
             <span className="text-2xl font-black text-amber-700 font-poppins">
               {processingOrders.length}
             </span>
-            <span className="text-xs text-stone-400 font-medium">Di Kompor Dapur</span>
+            <span className="text-xs text-stone-400 font-medium">In Preparation</span>
           </div>
         </button>
 
@@ -218,14 +218,14 @@ export default function KitchenPage() {
           <div className="flex items-center space-x-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
             <span className="text-xs font-bold uppercase tracking-wider text-emerald-800">
-              Siap Disajikan
+              Ready to Serve
             </span>
           </div>
           <div className="flex items-baseline justify-between mt-1">
             <span className="text-2xl font-black text-emerald-800 font-poppins">
               {readyOrders.length}
             </span>
-            <span className="text-xs text-stone-400 font-medium">Siap Diantar</span>
+            <span className="text-xs text-stone-400 font-medium">Ready for Waiter</span>
           </div>
         </button>
 
@@ -233,17 +233,17 @@ export default function KitchenPage() {
 
       {/* Grid of Kitchen Tickets */}
       {loading ? (
-        <div className="py-20 text-center text-xs text-stone-500">Memuat tiket dapur...</div>
+        <div className="py-20 text-center text-xs text-stone-500">Loading kitchen tickets...</div>
       ) : filteredOrders.length === 0 ? (
         <div className="bg-white rounded-3xl border border-resto-yellow-200 p-12 text-center max-w-md mx-auto space-y-3 shadow-xs">
           <div className="w-16 h-16 mx-auto rounded-3xl bg-resto-yellow-100 text-resto-yellow-900 border border-resto-yellow-300 flex items-center justify-center text-2xl">
             🍳
           </div>
           <h2 className="text-lg font-bold text-stone-900 font-poppins">
-            Dapur Sedang Bersih &amp; Santai
+            Kitchen is All Clear
           </h2>
           <p className="text-xs text-stone-400">
-            Tidak ada tiket pesanan dengan status ini. Pesanan baru akan otomatis muncul di sini.
+            No order tickets with this status. New orders will automatically appear here.
           </p>
         </div>
       ) : (
@@ -275,7 +275,7 @@ export default function KitchenPage() {
                       #{order.order_number}
                     </span>
                     <span className="text-lg font-black font-poppins">
-                      Meja {order.table?.table_code}
+                      Table {order.table?.table_code}
                     </span>
                   </div>
                   <div className="text-right">
@@ -299,7 +299,7 @@ export default function KitchenPage() {
                       {item.notes && (
                         <div className="p-2.5 rounded-xl bg-resto-yellow-50 border border-resto-yellow-200 text-[11px] text-resto-yellow-950 font-medium flex items-center space-x-1.5">
                           <span>⚠️</span>
-                          <span>Catatan Koki: &ldquo;{item.notes}&rdquo;</span>
+                          <span>Chef Note: &ldquo;{item.notes}&rdquo;</span>
                         </div>
                       )}
                     </div>
@@ -315,7 +315,7 @@ export default function KitchenPage() {
                       onClick={() => updateOrderStatus(order.order_number, "processing")}
                       className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-resto-red-600 to-resto-red-700 hover:from-resto-red-700 hover:to-resto-red-800 disabled:opacity-50 text-white font-bold text-xs shadow-xs transition-all active:scale-98 flex items-center justify-center space-x-1.5 cursor-pointer"
                     >
-                      <span>🍳 Mulai Memasak Menu</span>
+                      <span>🍳 Start Cooking Order</span>
                     </button>
                   )}
 
@@ -326,7 +326,7 @@ export default function KitchenPage() {
                       onClick={() => updateOrderStatus(order.order_number, "ready")}
                       className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-600 to-emerald-600 hover:from-amber-700 hover:to-emerald-700 disabled:opacity-50 text-white font-bold text-xs shadow-xs transition-all active:scale-98 flex items-center justify-center space-x-1.5 cursor-pointer"
                     >
-                      <span>🔔 Masakan Selesai &amp; Siap Saji</span>
+                      <span>🔔 Mark as Ready to Serve</span>
                     </button>
                   )}
 
@@ -337,7 +337,7 @@ export default function KitchenPage() {
                       onClick={() => updateOrderStatus(order.order_number, "completed")}
                       className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 disabled:opacity-50 text-white font-bold text-xs shadow-xs transition-all active:scale-98 flex items-center justify-center space-x-1.5 cursor-pointer"
                     >
-                      <span>🍽️ Pesanan Selesai Diantar</span>
+                      <span>🍽️ Mark as Served / Completed</span>
                     </button>
                   )}
                 </div>

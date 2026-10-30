@@ -51,7 +51,7 @@ export default function TableSelectModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedTable) return;
-    setCustomerInfo(nameInput.trim() || "Pelanggan", selectedTable.table_code, selectedTable.id);
+    setCustomerInfo(nameInput.trim() || "Guest", selectedTable.table_code, selectedTable.id);
     onClose();
   };
 
@@ -69,53 +69,53 @@ export default function TableSelectModal({
             ✕
           </button>
           <div className="inline-flex items-center space-x-1 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-wider bg-yellow-400 text-red-950 mb-1.5 sm:mb-2 shadow-xs">
-            <span>🍽️ Ruang Santap Resto Mayo</span>
+            <span>🍽️ Resto Mayo Dining Room</span>
           </div>
           <h2 className="text-lg sm:text-2xl font-black font-poppins text-yellow-300 drop-shadow-sm">
-            Tentukan Meja &amp; Nama Anda
+            Select Table &amp; Enter Your Name
           </h2>
           <p className="text-[11px] sm:text-xs text-yellow-100/90 mt-0.5 font-medium">
-            Pesanan lezat Anda akan langsung diantar oleh pramusaji ke meja ini.
+            Your delicious orders will be served directly by our staff to this table.
           </p>
         </div>
 
         {/* Content Form */}
         <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-3.5 sm:space-y-5 bg-[#FFFDF5]">
-          {/* Nama Pemesan */}
+          {/* Guest Name */}
           <div>
             <label className="block text-[11px] sm:text-xs font-bold uppercase tracking-wider text-red-950 mb-1 sm:mb-2 font-poppins">
-              Nama Lengkap Pemesan <span className="text-red-600">*</span>
+              Guest Full Name <span className="text-red-600">*</span>
             </label>
             <input
               type="text"
               required
               value={nameInput}
               onChange={(e) => setNameInput(e.target.value)}
-              placeholder="Contoh: Budi Santoso"
+              placeholder="E.g. John Doe"
               className="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl border-2 border-amber-200 bg-white text-xs sm:text-sm font-semibold focus:outline-none focus:border-red-600 focus:ring-2 focus:ring-yellow-300"
             />
           </div>
 
-          {/* Grid Meja */}
+          {/* Table Grid */}
           <div>
             <div className="flex items-center justify-between mb-1.5 sm:mb-2">
               <label className="block text-[11px] sm:text-xs font-bold uppercase tracking-wider text-red-950 font-poppins">
-                Pilih Meja Resto <span className="text-red-600">*</span>
+                Choose Restaurant Table <span className="text-red-600">*</span>
               </label>
               <div className="flex items-center space-x-2 text-[10px] font-bold">
                 <span className="flex items-center space-x-1 text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                  <span>Tersedia</span>
+                  <span>Available</span>
                 </span>
                 <span className="flex items-center space-x-1 text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                  <span>Terisi</span>
+                  <span>Occupied</span>
                 </span>
               </div>
             </div>
 
             {loading ? (
-              <div className="py-6 text-center text-xs text-amber-700 font-medium">Memuat data meja...</div>
+              <div className="py-6 text-center text-xs text-amber-700 font-medium">Loading table data...</div>
             ) : (
               <div className="grid grid-cols-5 gap-1.5 sm:gap-2.5 max-h-48 sm:max-h-52 overflow-y-auto p-1">
                 {tables.map((t) => {
@@ -152,14 +152,14 @@ export default function TableSelectModal({
               onClick={onClose}
               className="flex-1 py-2.5 sm:py-3 px-3 rounded-xl sm:rounded-2xl border border-gray-300 text-gray-700 font-bold text-xs hover:bg-gray-100 cursor-pointer"
             >
-              Batal
+              Cancel
             </button>
             <button
               type="submit"
               disabled={!selectedTable || !nameInput.trim()}
               className="flex-1 py-2.5 sm:py-3 px-3 rounded-xl sm:rounded-2xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 disabled:opacity-50 text-white font-black text-xs shadow-md shadow-red-600/20 border border-yellow-400/50 cursor-pointer"
             >
-              Simpan &amp; Pesan ➔
+              Save &amp; Order ➔
             </button>
           </div>
         </form>

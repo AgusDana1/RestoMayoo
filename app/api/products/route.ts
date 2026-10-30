@@ -50,7 +50,7 @@ export async function POST(request: Request) {
   // Authentication check
   if (!isAdminAuthenticated(request)) {
     return NextResponse.json(
-      { error: "Akses ditolak: Anda harus login sebagai admin" },
+      { error: "Access denied: You must be logged in as an administrator" },
       { status: 401 }
     );
   }
@@ -66,7 +66,7 @@ export async function POST(request: Request) {
 
     if (!name || !category_id || isNaN(price) || price < 0) {
       return NextResponse.json(
-        { error: "Nama, kategori, dan harga valid wajib diisi" },
+        { error: "Name, category, and valid price are required" },
         { status: 400 }
       );
     }

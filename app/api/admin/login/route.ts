@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     if (!rateLimit.allowed) {
       return NextResponse.json(
         {
-          error: "Terlalu banyak percobaan login gagal. Demi keamanan, akun dikunci sementara. Silakan coba lagi nanti.",
+          error: "Too many failed login attempts. For security, your account is temporarily locked. Please try again later.",
         },
         { status: 429 }
       );
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
 
     if (!email || !password) {
       return NextResponse.json(
-        { error: "Email dan password wajib diisi" },
+        { error: "Email and password are required" },
         { status: 400 }
       );
     }
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
     if (!user || user.password !== password) {
       return NextResponse.json(
         {
-          error: `Email atau password yang Anda masukkan salah. (Sisa percobaan: ${rateLimit.remaining})`,
+          error: `Invalid email or password. (${rateLimit.remaining} attempts remaining)`,
         },
         { status: 401 }
       );
@@ -68,7 +68,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Admin login error:", error);
     return NextResponse.json(
-      { error: "Terjadi kesalahan saat memproses login" },
+      { error: "An error occurred while processing login" },
       { status: 500 }
     );
   }

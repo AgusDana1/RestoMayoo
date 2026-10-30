@@ -58,7 +58,7 @@ async function main() {
       category: "Makanan",
       name: "Risoles Mayonise Keju Lumer",
       description:
-        "Menu andalan Resto Mayo! Risoles renyah keemasan dengan isian daging asap premium, telur rebus lembut, keju lumer, dan racikan mayonise spesial yang gurih memikat.",
+        "Resto Mayo signature dish! Golden crispy risoles filled with premium smoked beef, tender boiled egg, melted mozzarella, and our signature savory mayonnaise.",
       price: 18000,
       image:
         "https://images.unsplash.com/photo-1541529086526-db283c563270?w=600&q=80",
@@ -68,7 +68,7 @@ async function main() {
       category: "Makanan",
       name: "Nasi Goreng Spesial Resto Mayo",
       description:
-        "Nasi goreng racikan bumbu rempah autentik dengan suwiran ayam gurih, udang segar, telur mata sapi setengah matang, kerupuk udang renyah, dan acar segar.",
+        "Authentic spiced Indonesian fried rice tossed with shredded savory chicken, fresh prawns, sunny-side-up egg, and crispy prawn crackers.",
       price: 32000,
       image:
         "https://images.unsplash.com/photo-1603133872878-684f208fb84b?w=600&q=80",
@@ -78,7 +78,7 @@ async function main() {
       category: "Makanan",
       name: "Nasi Goreng Seafood Pedas",
       description:
-        "Nasi goreng kaya aroma dengan paduan udang manis, cumi kenyal, dan bakso ikan disiram sambal terasi gurih dengan tingkat kepedasan pas.",
+        "Aromatic seafood fried rice tossed with sweet prawns, tender squid, and fish balls in spicy savory chili relish.",
       price: 36000,
       image:
         "https://images.unsplash.com/photo-1512058564366-18510be2db19?w=600&q=80",
@@ -88,7 +88,7 @@ async function main() {
       category: "Makanan",
       name: "Ayam Bakar",
       description:
-        "Ayam bakar dengan bumbu yang meresap dan membuat kenyang seharian.",
+        "Juicy Indonesian sweet soy marinated grilled chicken caramelized over open flame, served tender to the bone.",
       price: 45000,
       image:
         "https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?w=600&q=80",
@@ -98,7 +98,7 @@ async function main() {
       category: "Dimsum",
       name: "Dimsum Ayam Mayo Mentai",
       description:
-        "Siomay ayam gurih lembut isi 4 pcs disajikan hangat dengan baluran saus mentai mayonise bakar yang harum menggugah selera.",
+        "Steamed savory chicken dimsum (4 pcs) served hot and glazed with torched Japanese mentai mayonnaise sauce.",
       price: 24000,
       image:
         "https://images.unsplash.com/photo-1496116218417-1a781b1c416c?w=600&q=80",
@@ -108,7 +108,7 @@ async function main() {
       category: "Dimsum",
       name: "Udang Keju",
       description:
-        "Udang Keju dengan mozarella yang lumer untuk pelanggan tercinta dari resto mayo",
+        "Crispy golden prawn dumplings filled with molten melted mozzarella cheese.",
       price: 10000,
       image:
         "https://images.unsplash.com/photo-1559847844-5315695dadae?w=600&q=80",
@@ -118,7 +118,7 @@ async function main() {
       category: "Dimsum",
       name: "Udang Mayo",
       description:
-        "Udang Mayo dengan topping mayonise khas milik resto mayo",
+        "Crispy prawn bites drizzled generously with Resto Mayo's signature gourmet mayonnaise.",
       price: 10000,
       image:
         "https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?w=600&q=80",
@@ -128,7 +128,7 @@ async function main() {
       category: "Dimsum",
       name: "Udang Selai Kacang",
       description:
-        "Udang Selai Kacang milik resto mayo dengan ini bisa membuat pelanggan terpikat",
+        "Crispy savory prawns glazed in rich roasted peanut sauce, bursting with savory-sweet flavor.",
       price: 10000,
       image:
         "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=600&q=80",
@@ -138,7 +138,7 @@ async function main() {
       category: "Minuman",
       name: "Es Kopi Susu Aren Mayo",
       description:
-        "Espresso robusta & arabika pilihan berpadu susu segar krimi dan sirup gula aren murni disajikan dingin menyegarkan.",
+        "Chilled premium espresso blend of robusta & arabica, fresh creamy milk, and pure organic palm sugar.",
       price: 22000,
       image:
         "https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?w=600&q=80",
@@ -148,7 +148,7 @@ async function main() {
       category: "Minuman",
       name: "Es Teh Manis Melati Segar",
       description:
-        "Seduhan teh melati wangi alami pilihan khas nusantara disajikan dingin dengan es batu kristal penyejuk dahaga.",
+        "Fragrant iced Indonesian jasmine tea freshly brewed and served chilled with crystal ice.",
       price: 8000,
       image:
         "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=600&q=80",
@@ -158,7 +158,7 @@ async function main() {
       category: "Minuman",
       name: "Jus Alpukat Kocok Mayo",
       description:
-        "Daging alpukat mentega segar kental dikocok dengan susu kental manis cokelat dan krim lembut kaya nutrisi.",
+        "Thick fresh butter avocado shake drizzled with chocolate condensed milk and rich sweet cream.",
       price: 25000,
       image:
         "https://images.unsplash.com/photo-1525385133512-2f3bdd039054?w=600&q=80",
@@ -168,7 +168,7 @@ async function main() {
       category: "Minuman",
       name: "Milshake Milo",
       description:
-        "Milshake Milo yang segar membuat yang memesan ini pasti akan senang",
+        "Ice-blended chocolate malt shake topped with extra crunchy chocolate malt powder.",
       price: 15000,
       image:
         "https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=600&q=80",

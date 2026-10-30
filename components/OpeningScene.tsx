@@ -92,7 +92,7 @@ export default function OpeningScene() {
 
         {/* Tagline */}
         <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.22em] text-resto-gold-200 font-poppins">
-          Cita Rasa Autentik &amp; Meresap
+          Authentic &amp; Flavorful Cuisine
         </p>
 
         {/* Welcome Pill & Loader */}
@@ -100,7 +100,7 @@ export default function OpeningScene() {
           <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-black/40 border border-resto-gold-500/20 backdrop-blur-sm">
             <span className="w-1.5 h-1.5 rounded-full bg-resto-gold-400 animate-ping"></span>
             <span className="text-[10px] sm:text-[11px] font-medium text-amber-200/90 tracking-wider">
-              Menyiapkan Ruang Santap...
+              Preparing Your Dining Experience...
             </span>
           </div>
           <div className="w-36 sm:w-44 h-1 bg-white/10 rounded-full overflow-hidden p-0.5 border border-white/5">
@@ -111,7 +111,7 @@ export default function OpeningScene() {
 
       {/* Tap anywhere prompt */}
       <div className="absolute bottom-6 text-[10px] sm:text-xs text-white/40 tracking-wider font-light flex items-center space-x-1.5 pointer-events-none">
-        <span>Sentuh layar untuk langsung masuk</span>
+        <span>Tap anywhere to enter</span>
         <span>&rarr;</span>
       </div>
     </div>

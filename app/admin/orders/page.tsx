@@ -101,13 +101,13 @@ export default function AdminOrdersPage() {
         <div>
           <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-resto-yellow-100 text-resto-yellow-900 border border-resto-yellow-300 shadow-2xs mb-2">
             <span>📋</span>
-            <span>Riwayat Transaksi Pelanggan</span>
+            <span>Customer Order History</span>
           </span>
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-stone-900 font-poppins">
-            Manajemen <span className="text-resto-red-700">Pesanan Resto Mayo</span>
+            Resto Mayo <span className="text-resto-red-700">Orders Management</span>
           </h1>
           <p className="text-xs sm:text-sm text-stone-500 mt-1">
-            Lihat daftar transaksi, kelola status masakan, dan tinjau rincian pesanan.
+            View transactions, manage kitchen cooking statuses, and review order breakdowns.
           </p>
         </div>
 
@@ -116,7 +116,7 @@ export default function AdminOrdersPage() {
             onClick={fetchOrders}
             className="px-4 py-2.5 rounded-2xl bg-white border border-resto-yellow-200 text-xs font-bold hover:bg-resto-yellow-50 text-stone-700 shadow-2xs transition-colors cursor-pointer"
           >
-            ↻ Segarkan Data
+            ↻ Refresh Data
           </button>
         </div>
       </div>
@@ -127,12 +127,12 @@ export default function AdminOrdersPage() {
         {/* Status Filters */}
         <div className="flex items-center space-x-1.5 overflow-x-auto pb-2 sm:pb-0 scrollbar-none">
           {[
-            { id: "all", label: "Semua" },
+            { id: "all", label: "All" },
             { id: "pending", label: "Pending" },
-            { id: "processing", label: "Dimasak" },
-            { id: "ready", label: "Siap Saji" },
-            { id: "completed", label: "Selesai" },
-            { id: "cancelled", label: "Batal" },
+            { id: "processing", label: "Cooking" },
+            { id: "ready", label: "Ready" },
+            { id: "completed", label: "Completed" },
+            { id: "cancelled", label: "Cancelled" },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -154,7 +154,7 @@ export default function AdminOrdersPage() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Cari no. pesanan / nama..."
+            placeholder="Search order # or name..."
             className="w-full px-3.5 py-2 rounded-xl border border-resto-yellow-200 text-xs focus:outline-none focus:ring-2 focus:ring-resto-red-500 bg-white"
           />
         </div>
@@ -164,22 +164,22 @@ export default function AdminOrdersPage() {
       {/* Orders Table */}
       <div className="bg-white rounded-3xl border border-resto-yellow-200 shadow-xs overflow-hidden">
         {loading ? (
-          <div className="py-20 text-center text-xs text-stone-400">Memuat data pesanan...</div>
+          <div className="py-20 text-center text-xs text-stone-400">Loading orders...</div>
         ) : filteredOrders.length === 0 ? (
-          <div className="py-16 text-center text-xs text-stone-400">Tidak ada pesanan yang sesuai filter.</div>
+          <div className="py-16 text-center text-xs text-stone-400">No orders matching this filter.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="bg-resto-yellow-50/60 text-stone-600 uppercase font-bold text-[10px] tracking-wider border-b border-resto-yellow-100">
                 <tr>
-                  <th className="py-3.5 px-4">No. Pesanan</th>
-                  <th className="py-3.5 px-4">Meja</th>
-                  <th className="py-3.5 px-4">Pelanggan</th>
-                  <th className="py-3.5 px-4">Menu Dipesan</th>
+                  <th className="py-3.5 px-4">Order #</th>
+                  <th className="py-3.5 px-4">Table</th>
+                  <th className="py-3.5 px-4">Customer</th>
+                  <th className="py-3.5 px-4">Ordered Items</th>
                   <th className="py-3.5 px-4">Total</th>
-                  <th className="py-3.5 px-4">Status Bayar</th>
-                  <th className="py-3.5 px-4">Status Pesanan</th>
-                  <th className="py-3.5 px-4 text-right">Aksi</th>
+                  <th className="py-3.5 px-4">Payment Status</th>
+                  <th className="py-3.5 px-4">Order Status</th>
+                  <th className="py-3.5 px-4 text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-resto-yellow-100">
@@ -208,7 +208,7 @@ export default function AdminOrdersPage() {
                           ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
                           : "bg-resto-yellow-100 text-resto-yellow-900 border border-resto-yellow-300"
                       }`}>
-                        {order.payment?.status === "paid" ? "Lunas" : "Pending"} ({order.payment?.method})
+                        {order.payment?.status === "paid" ? "Paid" : "Pending"} ({order.payment?.method})
                       </span>
                     </td>
                     <td className="py-3.5 px-4">
@@ -218,10 +218,10 @@ export default function AdminOrdersPage() {
                         className="px-2 py-1 rounded-lg border border-resto-yellow-200 text-xs font-semibold bg-white text-stone-800 cursor-pointer"
                       >
                         <option value="pending">Pending</option>
-                        <option value="processing">Dimasak</option>
-                        <option value="ready">Siap Saji</option>
-                        <option value="completed">Selesai</option>
-                        <option value="cancelled">Batal</option>
+                        <option value="processing">Cooking</option>
+                        <option value="ready">Ready</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
                       </select>
                     </td>
                     <td className="py-3.5 px-4 text-right space-x-2">
@@ -229,7 +229,7 @@ export default function AdminOrdersPage() {
                         onClick={() => setSelectedOrder(order)}
                         className="px-3 py-1.5 rounded-xl bg-resto-yellow-100 hover:bg-resto-yellow-200 text-resto-yellow-950 font-bold text-[11px] border border-resto-yellow-300 transition-colors cursor-pointer"
                       >
-                        Detail
+                        Details
                       </button>
                     </td>
                   </tr>
@@ -246,7 +246,7 @@ export default function AdminOrdersPage() {
           <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-resto-yellow-200 space-y-5 animate-in zoom-in-95">
             <div className="flex items-center justify-between pb-3 border-b border-resto-yellow-100">
               <div>
-                <span className="text-[10px] text-stone-400 uppercase font-bold">Rincian Tiket Pesanan</span>
+                <span className="text-[10px] text-stone-400 uppercase font-bold">Order Ticket Details</span>
                 <h3 className="text-xl font-black text-resto-red-700 font-poppins">
                   #{selectedOrder.order_number}
                 </h3>
@@ -261,18 +261,18 @@ export default function AdminOrdersPage() {
 
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div className="p-3 bg-resto-yellow-50/50 rounded-2xl border border-resto-yellow-200">
-                <span className="text-stone-400 block text-[10px] font-bold uppercase">Pelanggan</span>
+                <span className="text-stone-400 block text-[10px] font-bold uppercase">Customer</span>
                 <span className="font-bold text-stone-800">{selectedOrder.customer_name}</span>
               </div>
               <div className="p-3 bg-resto-yellow-50/50 rounded-2xl border border-resto-yellow-200">
-                <span className="text-stone-400 block text-[10px] font-bold uppercase">Meja Santap</span>
-                <span className="font-bold text-resto-red-700">Meja {selectedOrder.table?.table_code}</span>
+                <span className="text-stone-400 block text-[10px] font-bold uppercase">Dining Table</span>
+                <span className="font-bold text-resto-red-700">Table {selectedOrder.table?.table_code}</span>
               </div>
             </div>
 
             {/* Item list */}
             <div className="space-y-2">
-              <h4 className="text-xs font-bold uppercase text-stone-600">Daftar Menu</h4>
+              <h4 className="text-xs font-bold uppercase text-stone-600">Ordered Items</h4>
               <div className="max-h-48 overflow-y-auto divide-y divide-resto-yellow-100">
                 {selectedOrder.order_items.map((item) => (
                   <div key={item.id} className="py-2 flex items-center justify-between text-xs">
@@ -281,7 +281,7 @@ export default function AdminOrdersPage() {
                       <span className="text-stone-400 ml-1.5 font-mono">x{item.quantity}</span>
                       {item.notes && (
                         <p className="text-[11px] text-resto-red-700 italic">
-                          Catatan: &ldquo;{item.notes}&rdquo;
+                          Note: &ldquo;{item.notes}&rdquo;
                         </p>
                       )}
                     </div>
@@ -292,7 +292,7 @@ export default function AdminOrdersPage() {
             </div>
 
             <div className="pt-3 border-t border-resto-yellow-100 flex items-baseline justify-between">
-              <span className="text-xs font-bold text-stone-600">Total Transaksi</span>
+              <span className="text-xs font-bold text-stone-600">Total Transaction</span>
               <span className="text-xl font-black text-resto-red-700 font-poppins">
                 {formatRupiah(selectedOrder.total_amount)}
               </span>
@@ -304,13 +304,13 @@ export default function AdminOrdersPage() {
                 target="_blank"
                 className="flex-1 py-2.5 rounded-2xl border border-resto-yellow-200 text-stone-700 font-bold text-xs text-center hover:bg-resto-yellow-50"
               >
-                Lihat Halaman Pembayaran
+                View Payment Page
               </Link>
               <button
                 onClick={() => setSelectedOrder(null)}
                 className="flex-1 py-2.5 rounded-2xl bg-gradient-to-r from-resto-red-600 to-resto-red-700 hover:from-resto-red-700 hover:to-resto-red-800 text-white font-bold text-xs cursor-pointer shadow-md shadow-resto-red-600/20"
               >
-                Tutup
+                Close
               </button>
             </div>
           </div>

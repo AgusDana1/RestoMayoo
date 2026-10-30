@@ -27,7 +27,7 @@ function TableQrDetector() {
           );
           if (matched) {
             setCustomerInfo(customerName || "", matched.table_code, matched.id);
-            setToastMsg(`✨ Terhubung otomatis ke Meja ${matched.table_code}!`);
+            setToastMsg(`✨ Automatically connected to Table ${matched.table_code}!`);
             setTimeout(() => setToastMsg(""), 5000);
           }
         })
@@ -159,15 +159,15 @@ export default function HomePage() {
           <div className="relative z-10 max-w-2xl space-y-2 sm:space-y-3.5">
             <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider bg-yellow-400 text-red-950 shadow-md">
               <span className="w-1.5 h-1.5 rounded-full bg-red-600 animate-ping"></span>
-              <span>🌶️ Menu Spesial &amp; Gorengan Mayo Lumer 🧀</span>
+              <span>🌶️ Chef's Specials &amp; Crispy Mayo Delights 🧀</span>
             </div>
 
             <h1 className="text-xl sm:text-4xl lg:text-5xl font-black font-poppins tracking-tight text-white drop-shadow-md">
-              Selamat Datang di <span className="text-yellow-300 drop-shadow-lg">Resto Mayo</span>
+              Welcome to <span className="text-yellow-300 drop-shadow-lg">Resto Mayo</span>
             </h1>
 
             <p className="text-[11px] sm:text-base text-yellow-50 font-medium leading-relaxed drop-shadow-xs line-clamp-2 sm:line-clamp-none">
-              Sensasi kuliner lezat nusantara: Risoles mayo keju lumer renyah, nasi goreng autentik, dimsum mentai bakar, dan aneka minuman segar yang menggugah selera!
+              Indulge in authentic savory cuisine: Golden crispy melted cheese mayo risoles, wok-charred fried rice, flame-grilled mentai dimsum, and handcrafted iced beverages!
             </p>
 
             {/* Table status banner if not set */}
@@ -178,15 +178,15 @@ export default function HomePage() {
                   className="inline-flex items-center space-x-1.5 sm:space-x-2 px-3.5 py-2 sm:px-5 sm:py-3 rounded-xl sm:rounded-2xl bg-yellow-400 hover:bg-yellow-300 text-red-950 font-black text-xs sm:text-sm shadow-md transition-all active:scale-95 cursor-pointer"
                 >
                   <span className="text-sm sm:text-base">🪑</span>
-                  <span>Pilih Meja Santap</span>
+                  <span>Select Dining Table</span>
                   <span>&rarr;</span>
                 </button>
               </div>
             ) : (
               <div className="pt-1 inline-flex items-center space-x-1.5 px-3 py-1 rounded-xl bg-red-900/60 border border-yellow-400/50 text-[11px] sm:text-xs text-yellow-200 font-bold backdrop-blur-xs">
-                <span>📍 Meja: <strong className="text-yellow-300 font-black">{tableCode}</strong></span>
+                <span>📍 Table: <strong className="text-yellow-300 font-black">{tableCode}</strong></span>
                 <span>•</span>
-                <span>👤 Pemesan: <strong className="text-white">{customerName || "Pelanggan"}</strong></span>
+                <span>👤 Guest: <strong className="text-white">{customerName || "Guest"}</strong></span>
               </div>
             )}
           </div>
@@ -205,13 +205,14 @@ export default function HomePage() {
                   : "bg-white text-gray-700 hover:bg-yellow-50/70 border border-amber-200"
               }`}
             >
-              🍽️ Semua ({products.length})
+              🍽️ All ({products.length})
             </button>
 
             {categories.map((cat) => {
               const isSelected = selectedCategory === cat.id.toString();
               const count = products.filter((p) => p.category_id === cat.id).length;
-              const emoji = cat.name.toLowerCase().includes("minum") ? "🥤" : cat.name.toLowerCase().includes("dimsum") ? "🥟" : "🍛";
+              const emoji = cat.name.toLowerCase().includes("minum") || cat.name.toLowerCase().includes("beverage") ? "🥤" : cat.name.toLowerCase().includes("dimsum") ? "🥟" : "🍛";
+              const displayName = cat.name.toLowerCase() === "makanan" ? "Food" : cat.name.toLowerCase() === "minuman" ? "Beverages" : cat.name;
               return (
                 <button
                   key={cat.id}
@@ -222,7 +223,7 @@ export default function HomePage() {
                       : "bg-white text-gray-700 hover:bg-yellow-50/70 border border-amber-200"
                   }`}
                 >
-                  {emoji} {cat.name} ({count})
+                  {emoji} {displayName} ({count})
                 </button>
               );
             })}
@@ -234,7 +235,7 @@ export default function HomePage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari menu hidangan..."
+              placeholder="Search dishes or drinks..."
               className="w-full pl-9 pr-8 py-2 rounded-xl sm:rounded-2xl bg-white border border-amber-200 text-xs sm:text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-yellow-300 shadow-2xs font-medium"
             />
             <svg
@@ -274,8 +275,8 @@ export default function HomePage() {
             <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 rounded-2xl bg-yellow-100 text-red-700 flex items-center justify-center text-2xl sm:text-3xl">
               🍳
             </div>
-            <h3 className="text-base sm:text-lg font-black text-red-950 font-poppins">Menu tidak ditemukan</h3>
-            <p className="text-xs text-amber-800 mt-1">Coba gunakan kata kunci lain atau pilih kategori yang berbeda.</p>
+            <h3 className="text-base sm:text-lg font-black text-red-950 font-poppins">No menu items found</h3>
+            <p className="text-xs text-amber-800 mt-1">Try another keyword or select a different category.</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-6">
@@ -301,7 +302,7 @@ export default function HomePage() {
                     {!product.is_available && (
                       <div className="absolute inset-0 bg-red-950/70 backdrop-blur-2xs flex items-center justify-center p-2 text-center">
                         <span className="px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-black uppercase text-white bg-red-600 shadow-md border border-yellow-300">
-                          Habis
+                          Sold Out
                         </span>
                       </div>
                     )}
@@ -314,13 +315,13 @@ export default function HomePage() {
                         {product.name}
                       </h3>
                       <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5 sm:mt-1 line-clamp-1 sm:line-clamp-2 leading-tight sm:leading-relaxed">
-                        {product.description || "Menu lezat racikan spesial Resto Mayo."}
+                        {product.description || "Special delicious dish crafted by Resto Mayo."}
                       </p>
                     </div>
 
                     <div className="pt-2 border-t border-amber-100 flex items-center justify-between gap-1">
                       <div>
-                        <span className="text-[8px] sm:text-[10px] text-amber-700 font-bold block uppercase tracking-wider">Harga</span>
+                        <span className="text-[8px] sm:text-[10px] text-amber-700 font-bold block uppercase tracking-wider">Price</span>
                         <span className="text-xs sm:text-base font-black text-red-600 font-poppins">
                           {formatRupiah(product.price)}
                         </span>
@@ -343,7 +344,7 @@ export default function HomePage() {
                             className="inline-flex items-center space-x-1 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-black text-[11px] sm:text-xs shadow-xs active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer border border-yellow-400/40"
                           >
                             <span className="text-yellow-300 font-bold">+</span>
-                            <span>Pesan</span>
+                            <span>Order</span>
                           </button>
                         ) : (
                           <div className="flex items-center space-x-1 bg-yellow-50 p-0.5 sm:p-1 rounded-xl border border-yellow-400">
@@ -381,7 +382,7 @@ export default function HomePage() {
                       >
                         <span className="text-amber-500">📝</span>
                         <span className="truncate">
-                          {cartItem?.notes ? `Catatan: "${cartItem.notes}"` : "+ Catatan koki"}
+                          {cartItem?.notes ? `Note: "${cartItem.notes}"` : "+ Chef's note"}
                         </span>
                       </button>
                     )}
@@ -405,7 +406,7 @@ export default function HomePage() {
               </div>
               <div>
                 <span className="text-[9px] sm:text-[10px] text-yellow-300 font-bold uppercase tracking-wider block">
-                  Pesanan Terpilih
+                  Selected Orders
                 </span>
                 <span className="text-xs sm:text-lg font-black font-poppins text-white">
                   {formatRupiah(totalAmount)}
@@ -417,7 +418,7 @@ export default function HomePage() {
               href="/cart"
               className="inline-flex items-center space-x-1.5 px-3 py-1.5 sm:px-5 sm:py-2.5 rounded-xl sm:rounded-2xl bg-yellow-400 hover:bg-yellow-300 text-red-950 font-black text-xs sm:text-sm shadow-md transition-all active:scale-95 border border-yellow-200 cursor-pointer"
             >
-              <span>Keranjang</span>
+              <span>Cart</span>
               <span>&rarr;</span>
             </Link>
           </div>
@@ -429,7 +430,7 @@ export default function HomePage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-2xs">
           <div className="bg-white rounded-2xl sm:rounded-3xl max-w-md w-full p-4 sm:p-6 shadow-2xl border-2 border-yellow-400 space-y-3.5">
             <h3 className="font-black text-sm sm:text-base text-red-950 font-poppins">
-              Catatan: <span className="text-red-600">{editingNoteItem.name}</span>
+              Notes for: <span className="text-red-600">{editingNoteItem.name}</span>
             </h3>
             <textarea
               rows={3}
@@ -437,7 +438,7 @@ export default function HomePage() {
               onChange={(e) =>
                 setEditingNoteItem({ ...editingNoteItem, notes: e.target.value })
               }
-              placeholder="Contoh: Ekstra pedas, saus dipisah, tanpa bawang..."
+              placeholder="E.g. Extra spicy, sauce on the side, no onions..."
               className="w-full p-2.5 rounded-xl border border-amber-200 text-xs sm:text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-yellow-300"
             />
             <div className="flex space-x-2">
@@ -446,7 +447,7 @@ export default function HomePage() {
                 onClick={() => setEditingNoteItem(null)}
                 className="flex-1 py-2 px-3 rounded-xl border border-gray-300 text-gray-700 font-bold text-xs cursor-pointer"
               >
-                Batal
+                Cancel
               </button>
               <button
                 type="button"
@@ -456,7 +457,7 @@ export default function HomePage() {
                 }}
                 className="flex-1 py-2 px-3 rounded-xl bg-gradient-to-r from-red-600 to-red-700 text-white font-black text-xs shadow-md border border-yellow-400 cursor-pointer"
               >
-                Simpan Catatan
+                Save Note
               </button>
             </div>
           </div>

@@ -15,7 +15,7 @@ export async function POST(
     const rateLimit = checkRateLimit(`pay_confirm:${clientIp}`, 10, 60 * 1000);
     if (!rateLimit.allowed) {
       return NextResponse.json(
-        { error: "Terlalu banyak permintaan konfirmasi. Silakan tunggu sebentar." },
+        { error: "Too many confirmation requests. Please wait a moment." },
         { status: 429 }
       );
     }
@@ -27,14 +27,14 @@ export async function POST(
 
     if (!order) {
       return NextResponse.json(
-        { error: "Pesanan tidak ditemukan" },
+        { error: "Order not found" },
         { status: 404 }
       );
     }
 
     if (!order.payment) {
       return NextResponse.json(
-        { error: "Data pembayaran untuk pesanan ini tidak ditemukan" },
+        { error: "Payment record for this order was not found" },
         { status: 404 }
       );
     }
@@ -68,7 +68,7 @@ export async function POST(
   } catch (error) {
     console.error("Error confirming payment:", error);
     return NextResponse.json(
-      { error: "Gagal mengonfirmasi pembayaran" },
+      { error: "Failed to confirm payment" },
       { status: 500 }
     );
   }

@@ -63,7 +63,7 @@ export default function AdminDashboardPage() {
     return (
       <div className="py-20 text-center space-y-3">
         <div className="w-10 h-10 border-4 border-resto-red-800 border-t-transparent rounded-full animate-spin mx-auto"></div>
-        <p className="text-xs text-gray-500 font-medium">Memuat ringkasan dashboard...</p>
+        <p className="text-xs text-gray-500 font-medium">Loading dashboard summary...</p>
       </div>
     );
   }
@@ -76,13 +76,13 @@ export default function AdminDashboardPage() {
         <div>
           <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-resto-yellow-100 text-resto-yellow-900 border border-resto-yellow-300 shadow-2xs">
             <span>📊</span>
-            <span>Ikhtisar Restoran &amp; Dapur</span>
+            <span>Restaurant &amp; Kitchen Overview</span>
           </span>
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-stone-900 mt-2 font-poppins">
-            Dashboard Resto <span className="text-resto-red-700">Mayo</span>
+            Resto <span className="text-resto-red-700">Mayo</span> Dashboard
           </h1>
           <p className="text-xs sm:text-sm text-stone-500 mt-1">
-            Pantau arus transaksi, okupansi meja santap, dan operasional dapur secara langsung.
+            Monitor transaction flow, dining table occupancy, and live kitchen operations.
           </p>
         </div>
 
@@ -92,7 +92,7 @@ export default function AdminDashboardPage() {
             className="inline-flex items-center space-x-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-resto-red-600 via-resto-red-700 to-resto-yellow-600 hover:from-resto-red-700 hover:to-resto-yellow-700 text-white font-bold text-xs shadow-md shadow-resto-red-600/20 transition-all cursor-pointer active:scale-95"
           >
             <span>🍳</span>
-            <span>Buka Kitchen Display (KDS) &rarr;</span>
+            <span>Open Kitchen Display (KDS) &rarr;</span>
           </Link>
         </div>
       </div>
@@ -103,7 +103,7 @@ export default function AdminDashboardPage() {
         {/* Metric 1: Omset */}
         <div className="p-5 bg-white rounded-3xl border border-resto-yellow-200/80 shadow-xs space-y-2">
           <div className="flex items-center justify-between text-stone-500">
-            <span className="text-xs font-bold uppercase tracking-wider">Total Omset Lunas</span>
+            <span className="text-xs font-bold uppercase tracking-wider">Total Paid Revenue</span>
             <span className="p-2 rounded-xl bg-resto-yellow-100 text-resto-yellow-900 border border-resto-yellow-200 text-sm">💰</span>
           </div>
           <div className="text-2xl font-black text-resto-red-700 font-poppins">
@@ -111,28 +111,28 @@ export default function AdminDashboardPage() {
           </div>
           <span className="text-[11px] text-emerald-700 font-semibold flex items-center space-x-1">
             <span>●</span>
-            <span>Pendapatan dari pesanan lunas</span>
+            <span>Revenue from completed &amp; paid orders</span>
           </span>
         </div>
 
         {/* Metric 2: Total Orders */}
         <div className="p-5 bg-white rounded-3xl border border-resto-yellow-200/80 shadow-xs space-y-2">
           <div className="flex items-center justify-between text-stone-500">
-            <span className="text-xs font-bold uppercase tracking-wider">Total Pesanan</span>
+            <span className="text-xs font-bold uppercase tracking-wider">Total Orders</span>
             <span className="p-2 rounded-xl bg-resto-red-50 text-resto-red-700 border border-resto-red-200 text-sm">📋</span>
           </div>
           <div className="text-2xl font-black text-stone-900 font-poppins">
             {stats?.totalOrders || 0}
           </div>
           <span className="text-[11px] text-stone-400 font-medium">
-            Semua tiket pesanan tercatat
+            All recorded order tickets
           </span>
         </div>
 
         {/* Metric 3: Active Kitchen Tickets */}
         <div className="p-5 bg-white rounded-3xl border border-resto-yellow-300 shadow-xs space-y-2">
           <div className="flex items-center justify-between text-stone-500">
-            <span className="text-xs font-bold uppercase tracking-wider">Antrean Dapur Aktif</span>
+            <span className="text-xs font-bold uppercase tracking-wider">Active Kitchen Queue</span>
             <span className="p-2 rounded-xl bg-resto-yellow-100 text-resto-yellow-900 border border-resto-yellow-300 text-sm">🍳</span>
           </div>
           <div className="text-2xl font-black text-resto-yellow-700 font-poppins">
@@ -140,21 +140,21 @@ export default function AdminDashboardPage() {
           </div>
           <span className="text-[11px] text-resto-yellow-800 font-semibold flex items-center space-x-1.5">
             <span className="w-2 h-2 rounded-full bg-resto-yellow-500 animate-ping"></span>
-            <span>Perlu dimasak koki</span>
+            <span>Requires chef preparation</span>
           </span>
         </div>
 
         {/* Metric 4: Table Occupancy */}
         <div className="p-5 bg-white rounded-3xl border border-resto-yellow-200/80 shadow-xs space-y-2">
           <div className="flex items-center justify-between text-stone-500">
-            <span className="text-xs font-bold uppercase tracking-wider">Okupansi Meja</span>
+            <span className="text-xs font-bold uppercase tracking-wider">Table Occupancy</span>
             <span className="p-2 rounded-xl bg-resto-red-50 text-resto-red-700 border border-resto-red-200 text-sm">🪑</span>
           </div>
           <div className="text-2xl font-black text-resto-red-700 font-poppins">
             {stats?.tableStats.occupied || 0} / {stats?.tableStats.total || 10}
           </div>
           <span className="text-[11px] text-stone-500 font-medium">
-            {stats?.tableStats.available || 0} meja santap siap pakai
+            {stats?.tableStats.available || 0} dining tables ready to seat
           </span>
         </div>
 
@@ -171,10 +171,10 @@ export default function AdminDashboardPage() {
             Kitchen Display System (KDS)
           </h2>
           <p className="text-xs text-resto-yellow-100/90 mt-1 leading-relaxed">
-            Layar real-time untuk bagian dapur memproses antrean pesanan masak secara FIFO (First-In, First-Out).
+            Real-time display for kitchen staff to process cooking orders in FIFO (First-In, First-Out) order.
           </p>
           <span className="inline-block mt-4 text-xs font-bold text-resto-yellow-300">
-            Buka Layar Dapur &rarr;
+            Open Kitchen Screen &rarr;
           </span>
         </Link>
 
@@ -184,13 +184,13 @@ export default function AdminDashboardPage() {
         >
           <div className="text-3xl mb-3">📋</div>
           <h2 className="text-lg font-bold text-stone-900 font-poppins group-hover:text-resto-red-700 transition-colors">
-            Kelola Seluruh Pesanan
+            Manage All Orders
           </h2>
           <p className="text-xs text-stone-500 mt-1 leading-relaxed">
-            Periksa rincian pesanan, ganti status transaksi, periksa bukti transfer, dan filter data pesanan pelanggan.
+            Review order breakdowns, update transaction statuses, check transfer receipts, and filter customer orders.
           </p>
           <span className="inline-block mt-4 text-xs font-bold text-resto-red-700">
-            Lihat Daftar Pesanan &rarr;
+            View Orders List &rarr;
           </span>
         </Link>
 
@@ -200,13 +200,13 @@ export default function AdminDashboardPage() {
         >
           <div className="text-3xl mb-3">🍔</div>
           <h2 className="text-lg font-bold text-stone-900 font-poppins group-hover:text-resto-red-700 transition-colors">
-            Kelola Menu &amp; Kategori
+            Manage Menu &amp; Categories
           </h2>
           <p className="text-xs text-stone-500 mt-1 leading-relaxed">
-            Atur ketersediaan menu (Tersedia / Habis), perbarui harga hidangan, atau tambahkan menu baru Resto Mayo.
+            Set menu availability (In Stock / Sold Out), adjust dish prices, or add new dishes to Resto Mayo.
           </p>
           <span className="inline-block mt-4 text-xs font-bold text-resto-red-700">
-            Kelola Menu &rarr;
+            Manage Menu &rarr;
           </span>
         </Link>
       </div>
@@ -216,17 +216,17 @@ export default function AdminDashboardPage() {
         <div className="flex items-center justify-between pb-3 border-b border-resto-yellow-100">
           <div>
             <h2 className="text-base font-bold text-stone-900 font-poppins">
-              Aktivitas Pesanan Terbaru
+              Recent Order Activity
             </h2>
             <p className="text-xs text-stone-400">
-              Transaksi yang baru masuk dari meja santap Resto Mayo.
+              Latest transactions placed from Resto Mayo dining tables.
             </p>
           </div>
           <Link
             href="/admin/orders"
             className="text-xs font-bold text-resto-red-700 hover:underline"
           >
-            Lihat Semua Pesanan &rarr;
+            View All Orders &rarr;
           </Link>
         </div>
 
@@ -234,13 +234,13 @@ export default function AdminDashboardPage() {
           <table className="w-full text-left text-xs">
             <thead className="bg-resto-yellow-50/60 text-stone-600 uppercase font-bold text-[10px] tracking-wider">
               <tr>
-                <th className="py-3 px-4 rounded-l-xl">No. Pesanan</th>
-                <th className="py-3 px-4">Meja</th>
-                <th className="py-3 px-4">Nama Pelanggan</th>
+                <th className="py-3 px-4 rounded-l-xl">Order #</th>
+                <th className="py-3 px-4">Table</th>
+                <th className="py-3 px-4">Customer Name</th>
                 <th className="py-3 px-4">Total</th>
-                <th className="py-3 px-4">Pembayaran</th>
+                <th className="py-3 px-4">Payment</th>
                 <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4 rounded-r-xl text-right">Aksi</th>
+                <th className="py-3 px-4 rounded-r-xl text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-resto-yellow-100">
@@ -266,7 +266,7 @@ export default function AdminDashboardPage() {
                         ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
                         : "bg-resto-yellow-100 text-resto-yellow-900 border border-resto-yellow-300"
                     }`}>
-                      {order.payment?.status === "paid" ? "Lunas" : "Belum Bayar"} ({order.payment?.method})
+                      {order.payment?.status === "paid" ? "Paid" : "Unpaid"} ({order.payment?.method})
                     </span>
                   </td>
                   <td className="py-3.5 px-4">
@@ -288,7 +288,7 @@ export default function AdminDashboardPage() {
                       target="_blank"
                       className="px-2.5 py-1 rounded-lg bg-resto-yellow-100 hover:bg-resto-yellow-200 border border-resto-yellow-300 text-resto-yellow-950 font-bold text-[11px] transition-colors"
                     >
-                      Buka Tiket
+                      View Ticket
                     </Link>
                   </td>
                 </tr>

@@ -37,7 +37,7 @@ export default function Navbar({ onSelectTableClick }: { onSelectTableClick?: ()
                 </div>
                 <div className="flex items-center space-x-1.5 -mt-1 hidden sm:flex">
                   <span className="text-[10px] text-amber-600 font-bold uppercase tracking-wider">
-                    🌶️ Cita Rasa Autentik &amp; Meresap 🧀
+                    🌶️ Authentic &amp; Flavorful Cuisine 🧀
                   </span>
                 </div>
               </div>
@@ -54,10 +54,10 @@ export default function Navbar({ onSelectTableClick }: { onSelectTableClick?: ()
                 <div className="w-2 h-2 rounded-full bg-red-600 animate-pulse shrink-0"></div>
                 <div className="flex flex-col leading-tight">
                   <span className="text-[8px] sm:text-[9px] uppercase tracking-wider text-red-700 font-black">
-                    {mounted && tableCode ? `Meja ${tableCode}` : "Pilih Meja"}
+                    {mounted && tableCode ? `Table ${tableCode}` : "Select Table"}
                   </span>
                   <span className="text-[10px] sm:text-[11px] font-bold text-gray-800 truncate max-w-[68px] sm:max-w-[130px]">
-                    {mounted && customerName ? customerName : "Belum diisi"}
+                    {mounted && customerName ? customerName : "Guest"}
                   </span>
                 </div>
               </button>
@@ -70,7 +70,7 @@ export default function Navbar({ onSelectTableClick }: { onSelectTableClick?: ()
                 <svg className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-yellow-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
-                <span className="hidden sm:inline">Pesanan</span>
+                <span className="hidden sm:inline">Cart</span>
                 {mounted && totalItems > 0 && (
                   <span className="inline-flex items-center justify-center px-1.5 py-0.2 sm:px-2 sm:py-0.5 text-[10px] sm:text-xs font-black leading-none text-red-950 bg-yellow-400 rounded-full shadow-xs border border-white">
                     {totalItems}

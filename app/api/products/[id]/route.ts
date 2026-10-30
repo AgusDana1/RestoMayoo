@@ -10,7 +10,7 @@ export async function PATCH(
   // Authentication check
   if (!isAdminAuthenticated(request)) {
     return NextResponse.json(
-      { error: "Akses ditolak: Anda harus login sebagai admin" },
+      { error: "Access denied: You must be logged in as an administrator" },
       { status: 401 }
     );
   }
@@ -34,7 +34,7 @@ export async function PATCH(
     if (body.price !== undefined) {
       const price = parseFloat(body.price);
       if (isNaN(price) || price < 0) {
-        return NextResponse.json({ error: "Harga tidak valid" }, { status: 400 });
+        return NextResponse.json({ error: "Invalid price" }, { status: 400 });
       }
       data.price = price;
     }
@@ -47,7 +47,7 @@ export async function PATCH(
     if (body.category_id !== undefined) {
       const catId = parsePositiveInt(body.category_id);
       if (!catId) {
-        return NextResponse.json({ error: "Kategori tidak valid" }, { status: 400 });
+        return NextResponse.json({ error: "Invalid category" }, { status: 400 });
       }
       data.category_id = catId;
     }
@@ -75,7 +75,7 @@ export async function DELETE(
   // Authentication check
   if (!isAdminAuthenticated(request)) {
     return NextResponse.json(
-      { error: "Akses ditolak: Anda harus login sebagai admin" },
+      { error: "Access denied: You must be logged in as an administrator" },
       { status: 401 }
     );
   }
