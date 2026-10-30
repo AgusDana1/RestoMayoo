@@ -305,7 +305,7 @@ export default function AdminQRPage() {
       )}
 
       {/* Print Specific CSS */}
-      <style jsx global>{`
+      <style>{`
         @media print {
           body {
             background: white !important;

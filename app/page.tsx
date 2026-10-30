@@ -159,7 +159,7 @@ export default function HomePage() {
           <div className="relative z-10 max-w-2xl space-y-2 sm:space-y-3.5">
             <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider bg-yellow-400 text-red-950 shadow-md">
               <span className="w-1.5 h-1.5 rounded-full bg-red-600 animate-ping"></span>
-              <span>🌶️ Chef's Specials &amp; Crispy Mayo Delights 🧀</span>
+              <span>🌶️ Chef&apos;s Specials &amp; Crispy Mayo Delights 🧀</span>
             </div>
 
             <h1 className="text-xl sm:text-4xl lg:text-5xl font-black font-poppins tracking-tight text-white drop-shadow-md">
@@ -382,7 +382,7 @@ export default function HomePage() {
                       >
                         <span className="text-amber-500">📝</span>
                         <span className="truncate">
-                          {cartItem?.notes ? `Note: "${cartItem.notes}"` : "+ Chef's note"}
+                          {cartItem?.notes ? `Note: "${cartItem.notes}"` : "+ Chef\u0027s note"}
                         </span>
                       </button>
                     )}
