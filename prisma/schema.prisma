@@ -75,6 +75,7 @@ model Order {
 
   order_items   OrderItem[]
   payment       Payment?
+  review        Review?
 
   @@map("orders")
 }
@@ -109,4 +110,22 @@ model Payment {
   updated_at        DateTime? @updatedAt
 
   @@map("payments")
+}
+
+model Review {
+  id              Int       @id @default(autoincrement())
+  order_id        Int       @unique @map("order_id")
+  order           Order     @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  customer_name   String    @map("customer_name")
+  rating          Int       // 1 to 5 stars
+  comment         String?   @db.Text
+  category        String?   // Food Taste, Service Speed, Pricing, Staff & Service, etc.
+  sentiment       String?   // positive, neutral, negative
+  is_critical     Boolean   @default(false) @map("is_critical")
+  critical_reason String?   @map("critical_reason")
+  ai_summary      String?   @map("ai_summary")
+  created_at      DateTime? @default(now())
+  updated_at      DateTime? @updatedAt
+
+  @@map("reviews")
 }

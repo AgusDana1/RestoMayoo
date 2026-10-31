@@ -4,6 +4,18 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import RestoMayoLogo from "@/components/RestoMayoLogo";
 
+interface ReviewData {
+  id: number;
+  rating: number;
+  comment?: string | null;
+  category?: string | null;
+  sentiment?: string | null;
+  is_critical?: boolean;
+  critical_reason?: string | null;
+  ai_summary?: string | null;
+  created_at?: string;
+}
+
 interface OrderDetail {
   id: number;
   order_number: string;
@@ -33,6 +45,7 @@ interface OrderDetail {
     amount: string | number;
     paid_at?: string | null;
   } | null;
+  review?: ReviewData | null;
 }
 
 export default function PaymentClient({ orderNumber }: { orderNumber: string }) {
@@ -41,6 +54,13 @@ export default function PaymentClient({ orderNumber }: { orderNumber: string }) 
   const [confirming, setConfirming] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
   const [successToast, setSuccessToast] = useState<string>("");
+
+  // Review states
+  const [rating, setRating] = useState<number>(5);
+  const [hoverRating, setHoverRating] = useState<number>(0);
+  const [comment, setComment] = useState<string>("");
+  const [submittingReview, setSubmittingReview] = useState<boolean>(false);
+  const [reviewError, setReviewError] = useState<string>("");
 
   const fetchOrder = React.useCallback(async () => {
     try {
@@ -83,6 +103,34 @@ export default function PaymentClient({ orderNumber }: { orderNumber: string }) 
       console.error(e);
     } finally {
       setConfirming(false);
+    }
+  };
+
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!order) return;
+    try {
+      setSubmittingReview(true);
+      setReviewError("");
+      const res = await fetch("/api/reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          order_number: order.order_number,
+          rating,
+          comment,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to submit review");
+      }
+      setSuccessToast("Thank you! Your feedback has been reviewed and recorded by AI.");
+      await fetchOrder();
+    } catch (err: any) {
+      setReviewError(err.message || "Failed to submit review");
+    } finally {
+      setSubmittingReview(false);
     }
   };
 
@@ -360,6 +408,154 @@ export default function PaymentClient({ orderNumber }: { orderNumber: string }) 
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* Customer Review & AI Sentiment Section */}
+          <div className="pt-4 border-t border-resto-yellow-100">
+            {order.review ? (
+              <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-resto-yellow-50/70 via-white to-emerald-50/40 border border-resto-yellow-200 shadow-xs space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-lg sm:text-xl">🌟</span>
+                    <div>
+                      <h3 className="text-xs sm:text-sm font-bold text-stone-900 font-poppins">
+                        Your Dining Feedback
+                      </h3>
+                      <span className="text-[10px] text-stone-400">
+                        Processed by Gemini AI Quality Assurance
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-0.5">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <span
+                        key={s}
+                        className={`text-sm sm:text-base ${
+                          s <= order.review!.rating ? "text-amber-400" : "text-stone-200"
+                        }`}
+                      >
+                        ★
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {order.review.comment && (
+                  <p className="text-xs text-stone-700 italic bg-white p-3 rounded-xl border border-resto-yellow-100 shadow-2xs">
+                    &ldquo;{order.review.comment}&rdquo;
+                  </p>
+                )}
+
+                <div className="flex flex-wrap items-center gap-2 pt-1 text-[10px] sm:text-[11px]">
+                  {order.review.category && (
+                    <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-resto-yellow-100 text-resto-yellow-900 border border-resto-yellow-300 font-bold">
+                      <span>✨ AI Category:</span>
+                      <span>{order.review.category}</span>
+                    </span>
+                  )}
+                  {order.review.sentiment && (
+                    <span
+                      className={`inline-flex items-center px-2 py-0.5 rounded-full font-bold uppercase text-[9px] sm:text-[10px] ${
+                        order.review.sentiment === "positive"
+                          ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                          : order.review.sentiment === "negative"
+                          ? "bg-rose-100 text-rose-800 border border-rose-200"
+                          : "bg-stone-100 text-stone-700 border border-stone-200"
+                      }`}
+                    >
+                      {order.review.sentiment} sentiment
+                    </span>
+                  )}
+                  {order.review.is_critical && (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full font-bold uppercase text-[9px] sm:text-[10px] bg-red-100 text-red-800 border border-red-300">
+                      ⚠️ Notified to Restaurant Manager
+                    </span>
+                  )}
+                </div>
+
+                {order.review.ai_summary && (
+                  <p className="text-[10px] sm:text-[11px] text-stone-500 pt-1 border-t border-resto-yellow-100/60">
+                    <strong className="text-stone-700">AI Note:</strong> {order.review.ai_summary}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-resto-yellow-50/70 via-white to-resto-red-50/30 border border-resto-yellow-200 shadow-xs space-y-3.5">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <div className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full bg-resto-yellow-100 text-resto-yellow-900 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider mb-1 border border-resto-yellow-300">
+                      <span>✨</span>
+                      <span>AI Quality Assurance</span>
+                    </div>
+                    <h3 className="text-xs sm:text-sm font-bold text-stone-900 font-poppins">
+                      How was your meal &amp; service?
+                    </h3>
+                    <p className="text-[10px] sm:text-[11px] text-stone-500">
+                      Rate your visit. Gemini AI automatically categorizes insights to help our kitchen and team serve you better.
+                    </p>
+                  </div>
+                </div>
+
+                <form onSubmit={handleSubmitReview} className="space-y-3">
+                  {/* Star selector */}
+                  <div className="flex items-center space-x-2">
+                    <span className="text-[11px] sm:text-xs font-bold text-stone-700">Rating:</span>
+                    <div className="flex items-center space-x-0.5 sm:space-x-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          type="button"
+                          key={star}
+                          onMouseEnter={() => setHoverRating(star)}
+                          onMouseLeave={() => setHoverRating(0)}
+                          onClick={() => setRating(star)}
+                          className="text-xl sm:text-2xl transition-transform hover:scale-125 focus:outline-hidden cursor-pointer"
+                        >
+                          <span className={(hoverRating || rating) >= star ? "text-amber-400" : "text-stone-300"}>
+                            ★
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                    <span className="text-[10px] sm:text-xs font-bold text-resto-red-700 ml-1">
+                      {rating === 5 ? "Outstanding! 😍" : rating === 4 ? "Very Good! 😊" : rating === 3 ? "Okay 🙂" : rating === 2 ? "Needs Improvement 😕" : "Disappointing 😞"}
+                    </span>
+                  </div>
+
+                  {/* Comment field */}
+                  <textarea
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    rows={2}
+                    placeholder="Tell us what you liked, food taste, temperature, or wait time..."
+                    className="w-full text-xs p-3 rounded-xl border border-resto-yellow-300/80 focus:ring-2 focus:ring-resto-red-400 focus:outline-hidden bg-white shadow-2xs resize-none placeholder:text-stone-400"
+                  />
+
+                  {reviewError && (
+                    <p className="text-[10px] sm:text-[11px] text-rose-600 font-medium">{reviewError}</p>
+                  )}
+
+                  <div className="flex justify-end">
+                    <button
+                      type="submit"
+                      disabled={submittingReview}
+                      className="px-4 py-2 rounded-xl bg-gradient-to-r from-resto-red-600 to-resto-yellow-600 hover:from-resto-red-700 hover:to-resto-yellow-700 text-white font-bold text-[11px] sm:text-xs shadow-md transition-all active:scale-95 disabled:opacity-50 cursor-pointer flex items-center space-x-1.5"
+                    >
+                      {submittingReview ? (
+                        <>
+                          <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          <span>AI Analyzing...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>✨</span>
+                          <span>Submit Feedback</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
           </div>
 
         </div>

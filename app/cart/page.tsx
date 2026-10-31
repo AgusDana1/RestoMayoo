@@ -5,11 +5,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCart } from "../../context/CartContext";
 import RestoMayoLogo from "../../components/RestoMayoLogo";
+import SmartUpsell from "../../components/SmartUpsell";
 import { getOptimizedImageUrl } from "../../lib/image";
 
 export default function CartPage() {
   const router = useRouter();
-  const { cart, updateQuantity, updateNotes, removeFromCart, clearCart, totalItems, totalAmount, tableCode } = useCart();
+  const { cart, addToCart, updateQuantity, updateNotes, removeFromCart, clearCart, totalItems, totalAmount, tableCode } = useCart();
   const [editingNotesId, setEditingNotesId] = useState<number | null>(null);
   const [tempNotes, setTempNotes] = useState<string>("");
 
@@ -217,6 +218,9 @@ export default function CartPage() {
                   </div>
                 ))}
               </div>
+
+              {/* Dynamic AI Upselling & Pairing Recommendations */}
+              <SmartUpsell cart={cart} onAddToCart={addToCart} />
             </div>
 
             {/* Summary Column (1 Col) */}

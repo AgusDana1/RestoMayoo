@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCart } from "../../context/CartContext";
 import RestoMayoLogo from "../../components/RestoMayoLogo";
+import SmartUpsell from "../../components/SmartUpsell";
 
 interface Table {
   id: number;
@@ -15,7 +16,7 @@ interface Table {
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { cart, customerName, tableCode, tableId, setCustomerInfo, clearCart, totalItems, totalAmount } = useCart();
+  const { cart, addToCart, customerName, tableCode, tableId, setCustomerInfo, clearCart, totalItems, totalAmount } = useCart();
 
   const [tables, setTables] = useState<Table[]>([]);
   const [name, setName] = useState<string>(customerName || "");
@@ -325,6 +326,9 @@ export default function CheckoutPage() {
                 <span>Your order ticket will instantly appear on the chef&apos;s Kitchen Display System (KDS).</span>
               </div>
             </div>
+
+            {/* Smart AI Upselling & Pairing Recommendations */}
+            <SmartUpsell cart={cart} onAddToCart={addToCart} compact={true} />
           </div>
 
         </form>

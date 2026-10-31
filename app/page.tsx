@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import Navbar from "../components/Navbar";
 import TableSelectModal from "../components/TableSelectModal";
 import OpeningScene from "../components/OpeningScene";
+import FoodCopilotModal from "../components/FoodCopilotModal";
 import { useCart } from "../context/CartContext";
 import { getOptimizedImageUrl } from "../lib/image";
 
@@ -70,6 +71,7 @@ export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isTableModalOpen, setIsTableModalOpen] = useState<boolean>(false);
+  const [isCopilotOpen, setIsCopilotOpen] = useState<boolean>(false);
   const [editingNoteItem, setEditingNoteItem] = useState<{ id: number; name: string; notes: string } | null>(null);
 
   const {
@@ -147,6 +149,14 @@ export default function HomePage() {
       <TableSelectModal
         isOpen={isTableModalOpen}
         onClose={() => setIsTableModalOpen(false)}
+      />
+
+      {/* AI Food Copilot Modal */}
+      <FoodCopilotModal
+        isOpen={isCopilotOpen}
+        onClose={() => setIsCopilotOpen(false)}
+        products={products}
+        onAddToCart={addToCart}
       />
 
       {/* Main Container */}
@@ -229,31 +239,44 @@ export default function HomePage() {
             })}
           </div>
 
-          {/* Search Box */}
-          <div className="relative w-full md:w-72">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search dishes or drinks..."
-              className="w-full pl-9 pr-8 py-2 rounded-xl sm:rounded-2xl bg-white border border-amber-200 text-xs sm:text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-yellow-300 shadow-2xs font-medium"
-            />
-            <svg
-              className="w-3.5 h-3.5 text-amber-500 absolute left-3 top-2.5 sm:top-3"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+          {/* Search & Food Copilot */}
+          <div className="flex items-center space-x-2 w-full md:w-auto">
+            <button
+              type="button"
+              onClick={() => setIsCopilotOpen(true)}
+              className="inline-flex items-center space-x-1.5 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-500 hover:from-yellow-300 hover:to-amber-300 text-red-950 font-black text-xs sm:text-sm shadow-xs border-2 border-red-600 transition-all active:scale-95 cursor-pointer shrink-0"
+              title="Search menu with natural language AI"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-2 text-xs text-amber-700 hover:text-red-700 font-bold"
+              <span>✨</span>
+              <span>AI Copilot</span>
+            </button>
+
+            {/* Search Box */}
+            <div className="relative flex-1 md:w-72">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search dishes or drinks..."
+                className="w-full pl-9 pr-8 py-2 rounded-xl sm:rounded-2xl bg-white border border-amber-200 text-xs sm:text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-yellow-300 shadow-2xs font-medium"
+              />
+              <svg
+                className="w-3.5 h-3.5 text-amber-500 absolute left-3 top-2.5 sm:top-3"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
               >
-                ✕
-              </button>
-            )}
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-2 text-xs text-amber-700 hover:text-red-700 font-bold"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
           </div>
 
         </div>

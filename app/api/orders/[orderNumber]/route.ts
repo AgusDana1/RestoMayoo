@@ -18,6 +18,7 @@ export async function GET(
           },
         },
         payment: true,
+        review: true,
       },
     });
 
