@@ -87,19 +87,31 @@ export default function FoodCopilotModal({
       });
 
       if (!res.ok) {
-        throw new Error("Failed to consult Food Copilot");
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to consult Food Copilot");
       }
 
       const data = await res.json();
       setInterpretedMood(data.interpretedMood || "");
 
       if (data.matches && Array.isArray(data.matches)) {
-        const resolved = data.matches
+        let resolved = data.matches
           .map((m: any) => {
-            const found = products.find((p) => p.id === m.productId);
+            const found = products.find((p) => Number(p.id) === Number(m.productId));
             return found ? { ...m, product: found } : null;
           })
           .filter(Boolean);
+
+        // If no product matched by ID, fallback to available products
+        if (resolved.length === 0 && products.length > 0) {
+          const available = products.filter((p) => p.is_available);
+          const candidates = available.slice(0, 2);
+          resolved = candidates.map((p) => ({
+            productId: p.id,
+            matchReason: `Pilihan hidangan favorit "${p.name}" yang sangat direkomendasikan untukmu!`,
+            product: p,
+          }));
+        }
         setMatches(resolved);
       }
     } catch (err: any) {

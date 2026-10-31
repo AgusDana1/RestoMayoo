@@ -98,7 +98,7 @@ export default function SmartUpsell({ cart, onAddToCart, compact = false }: Smar
           if (data.recommendations && Array.isArray(data.recommendations)) {
             const mapped = data.recommendations
               .map((rec: any) => {
-                const prod = allProducts.find((p) => p.id === rec.productId);
+                const prod = allProducts.find((p) => Number(p.id) === Number(rec.productId));
                 return prod ? { ...rec, product: prod } : null;
               })
               .filter(Boolean);

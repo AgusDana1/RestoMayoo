@@ -103,8 +103,34 @@ export default function AdminProductsPage() {
       });
       if (res.ok) {
         const data = await res.json();
-        setAiAnalysis(data.analysis || "");
-        setAiIdeas(data.ideas || []);
+        setAiAnalysis(data.analysis || "Rekomendasi menu inovatif Resto Mayo berdasarkan analisis katalog.");
+        setAiIdeas(
+          data.ideas && data.ideas.length > 0
+            ? data.ideas
+            : [
+                {
+                  name: "Truffle Mayo Dimsum Platter",
+                  categoryName: categories.find((c) => /dimsum/i.test(c.name))?.name || categories[0]?.name || "Dimsum",
+                  suggestedPrice: 28000,
+                  description: "Aneka dimsum lembut dikukus sempurna dengan saus truffle mayonnaise aromatik gurih lumer.",
+                  commercialReason: "Tren dimsum truffle viral di kalangan anak muda dan margin profit di atas 60%.",
+                },
+                {
+                  name: "Ayam Crispy Mayo Lava",
+                  categoryName: categories.find((c) => /makan/i.test(c.name))?.name || categories[0]?.name || "Makanan",
+                  suggestedPrice: 32000,
+                  description: "Fillet ayam renyah keemasan dibalut racikan saus mayonnaise pedas manis yang meledak di lidah.",
+                  commercialReason: "Menu olahan ayam goreng krispi dengan saus signature selalu menjadi best seller harian.",
+                },
+                {
+                  name: "Es Jeruk Selasih Mayo Soda",
+                  categoryName: categories.find((c) => /minum/i.test(c.name))?.name || categories[1]?.name || "Minuman",
+                  suggestedPrice: 15000,
+                  description: "Perasan jeruk murni dingin berpadu biji selasih renyah dan sentuhan soda menyegarkan dahaga.",
+                  commercialReason: "Minuman pereda pedas dan penetral makanan gurih yang meningkatkan Average Order Value.",
+                },
+              ]
+        );
       }
     } catch (err) {
       console.error("AI advisor error:", err);

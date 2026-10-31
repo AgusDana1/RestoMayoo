@@ -6,13 +6,30 @@ const apiKey = process.env.GEMINI_API_KEY || "";
 const ai = new GoogleGenAI({ apiKey });
 
 function cleanJsonOutput(raw: string): string {
-  let cleaned = raw.trim();
-  if (cleaned.startsWith("```json")) {
-    cleaned = cleaned.replace(/^```json\s*/i, "").replace(/\s*```$/, "");
-  } else if (cleaned.startsWith("```")) {
-    cleaned = cleaned.replace(/^```\s*/, "").replace(/\s*```$/, "");
+  let text = (raw || "").trim();
+  const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  if (codeBlockMatch) {
+    text = codeBlockMatch[1].trim();
   }
-  return cleaned.trim();
+  const firstBrace = text.indexOf("{");
+  const firstBracket = text.indexOf("[");
+  let startIdx = -1;
+  if (firstBrace !== -1 && firstBracket !== -1) {
+    startIdx = Math.min(firstBrace, firstBracket);
+  } else if (firstBrace !== -1) {
+    startIdx = firstBrace;
+  } else if (firstBracket !== -1) {
+    startIdx = firstBracket;
+  }
+  if (startIdx !== -1) {
+    const isObject = text[startIdx] === "{";
+    const lastChar = isObject ? "}" : "]";
+    const endIdx = text.lastIndexOf(lastChar);
+    if (endIdx > startIdx) {
+      text = text.substring(startIdx, endIdx + 1);
+    }
+  }
+  return text.trim();
 }
 
 export async function GET() {
@@ -152,7 +169,12 @@ Return STRICTLY a JSON object with this exact structure, with NO markdown backti
   "aiSummary": "Summary sentence"
 }`;
 
-        const models = ["gemini-3.8-flash", "gemini-2.5-flash", "gemini-2.0-flash"];
+        const models = [
+          "gemini-flash-lite-latest",
+          "gemini-3.5-flash-lite",
+          "gemini-3.5-flash",
+          "gemini-3.8-flash",
+        ];
         for (const m of models) {
           try {
             const resp = await ai.models.generateContent({ model: m, contents: prompt });
