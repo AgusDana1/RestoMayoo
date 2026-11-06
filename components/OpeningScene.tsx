@@ -3,12 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 
 export default function OpeningScene() {
-  const [visible, setVisible] = useState(() => {
-    if (typeof window !== "undefined") {
-      return !sessionStorage.getItem("resto_mayo_scene_seen");
-    }
-    return false;
-  });
+  const [visible, setVisible] = useState(false);
   const [animatingOut, setAnimatingOut] = useState(false);
 
   const handleDismiss = useCallback(() => {
@@ -19,6 +14,15 @@ export default function OpeningScene() {
     setTimeout(() => {
       setVisible(false);
     }, 600);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const seen = sessionStorage.getItem("resto_mayo_scene_seen");
+      if (!seen) {
+        setVisible(true);
+      }
+    }
   }, []);
 
   useEffect(() => {
