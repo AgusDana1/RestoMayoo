@@ -40,6 +40,7 @@ export default function AdminOrdersPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [search, setSearch] = useState<string>("");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [deletingOrderNumber, setDeletingOrderNumber] = useState<string | null>(null);
 
   const fetchOrders = React.useCallback(async () => {
     try {
@@ -76,6 +77,34 @@ export default function AdminOrdersPage() {
       }
     } catch (e) {
       console.error(e);
+    }
+  };
+
+  const handleDeleteOrder = async (orderNumber: string) => {
+    const isConfirmed = window.confirm(
+      `Apakah Anda yakin ingin menghapus pesanan #${orderNumber} yang sudah selesai ini? Tindakan ini tidak dapat dibatalkan.`
+    );
+    if (!isConfirmed) return;
+
+    try {
+      setDeletingOrderNumber(orderNumber);
+      const res = await fetch(`/api/orders/${orderNumber}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || "Gagal menghapus pesanan.");
+        return;
+      }
+      if (selectedOrder?.order_number === orderNumber) {
+        setSelectedOrder(null);
+      }
+      await fetchOrders();
+    } catch (e) {
+      console.error("Error deleting order:", e);
+      alert("Terjadi kesalahan saat menghapus pesanan.");
+    } finally {
+      setDeletingOrderNumber(null);
     }
   };
 
@@ -224,13 +253,24 @@ export default function AdminOrdersPage() {
                         <option value="cancelled">Cancelled</option>
                       </select>
                     </td>
-                    <td className="py-3.5 px-4 text-right space-x-2">
+                    <td className="py-3.5 px-4 text-right space-x-2 whitespace-nowrap">
                       <button
                         onClick={() => setSelectedOrder(order)}
                         className="px-3 py-1.5 rounded-xl bg-resto-yellow-100 hover:bg-resto-yellow-200 text-resto-yellow-950 font-bold text-[11px] border border-resto-yellow-300 transition-colors cursor-pointer"
                       >
                         Details
                       </button>
+                      {(order.status === "completed" || order.status === "cancelled") && (
+                        <button
+                          onClick={() => handleDeleteOrder(order.order_number)}
+                          disabled={deletingOrderNumber === order.order_number}
+                          title="Hapus pesanan selesai"
+                          className="px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[11px] border border-rose-200 transition-colors cursor-pointer disabled:opacity-50 inline-flex items-center space-x-1"
+                        >
+                          <span>🗑️</span>
+                          <span>{deletingOrderNumber === order.order_number ? "Deleting..." : "Delete"}</span>
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -302,10 +342,21 @@ export default function AdminOrdersPage() {
               <Link
                 href={`/payment/${selectedOrder.order_number}`}
                 target="_blank"
-                className="flex-1 py-2.5 rounded-2xl border border-resto-yellow-200 text-stone-700 font-bold text-xs text-center hover:bg-resto-yellow-50"
+                className="flex-1 py-2.5 rounded-2xl border border-resto-yellow-200 text-stone-700 font-bold text-xs text-center hover:bg-resto-yellow-50 flex items-center justify-center"
               >
                 View Payment Page
               </Link>
+              {(selectedOrder.status === "completed" || selectedOrder.status === "cancelled") && (
+                <button
+                  type="button"
+                  onClick={() => handleDeleteOrder(selectedOrder.order_number)}
+                  disabled={deletingOrderNumber === selectedOrder.order_number}
+                  className="px-3.5 py-2.5 rounded-2xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs border border-rose-200 transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center space-x-1"
+                >
+                  <span>🗑️</span>
+                  <span>{deletingOrderNumber === selectedOrder.order_number ? "Deleting..." : "Delete Order"}</span>
+                </button>
+              )}
               <button
                 onClick={() => setSelectedOrder(null)}
                 className="flex-1 py-2.5 rounded-2xl bg-gradient-to-r from-resto-red-600 to-resto-red-700 hover:from-resto-red-700 hover:to-resto-red-800 text-white font-bold text-xs cursor-pointer shadow-md shadow-resto-red-600/20"

@@ -31,7 +31,11 @@ export default function TableSelectModal({
         const data = await res.json();
         setTables(data);
         const current = data.find((t: Table) => t.table_code === tableCode);
-        if (current) setSelectedTable(current);
+        if (current && current.status !== "occupied") {
+          setSelectedTable(current);
+        } else {
+          setSelectedTable(null);
+        }
       }
     } catch (e) {
       console.error(e);
@@ -125,18 +129,28 @@ export default function TableSelectModal({
                     <button
                       key={t.id}
                       type="button"
-                      onClick={() => setSelectedTable(t)}
-                      className={`flex flex-col items-center justify-center p-2 sm:p-3 rounded-xl sm:rounded-2xl border-2 text-center transition-all cursor-pointer ${
-                        isSelected
-                          ? "bg-gradient-to-b from-red-600 to-red-700 text-yellow-300 border-yellow-400 shadow-md shadow-red-600/30 scale-102"
-                          : isOccupied
-                          ? "bg-amber-100/60 border-amber-300 text-amber-900 hover:border-amber-400"
-                          : "bg-white border-amber-200 text-gray-800 hover:border-yellow-400 hover:bg-yellow-50/50"
+                      disabled={isOccupied}
+                      onClick={() => !isOccupied && setSelectedTable(t)}
+                      title={isOccupied ? `Meja ${t.table_code} sedang terisi pelanggan` : `Pilih Meja ${t.table_code}`}
+                      className={`flex flex-col items-center justify-center p-2 sm:p-3 rounded-xl sm:rounded-2xl border-2 text-center transition-all ${
+                        isOccupied
+                          ? "bg-stone-100/80 border-stone-300 text-stone-400 cursor-not-allowed opacity-60 select-none"
+                          : isSelected
+                          ? "bg-gradient-to-b from-red-600 to-red-700 text-yellow-300 border-yellow-400 shadow-md shadow-red-600/30 scale-102 cursor-pointer"
+                          : "bg-white border-amber-200 text-gray-800 hover:border-yellow-400 hover:bg-yellow-50/50 cursor-pointer"
                       }`}
                     >
                       <span className="text-xs sm:text-sm font-black font-poppins">{t.table_code}</span>
-                      <span className={`text-[8px] sm:text-[9px] mt-0.5 font-bold ${isSelected ? "text-yellow-200" : isOccupied ? "text-amber-700" : "text-gray-400"}`}>
-                        #{t.table_number}
+                      <span
+                        className={`text-[8px] sm:text-[9px] mt-0.5 font-bold ${
+                          isOccupied
+                            ? "text-rose-500 font-extrabold uppercase"
+                            : isSelected
+                            ? "text-yellow-200"
+                            : "text-gray-400"
+                        }`}
+                      >
+                        {isOccupied ? "Terisi" : `#${t.table_number}`}
                       </span>
                     </button>
                   );

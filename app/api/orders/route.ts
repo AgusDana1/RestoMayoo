@@ -87,14 +87,31 @@ export async function POST(request: Request) {
       );
     }
 
-    // Verify table exists
+    // Verify table exists and is not occupied
     const table = await prisma.table.findUnique({
       where: { id: tableIdNum },
+      include: {
+        orders: {
+          where: {
+            status: { in: ["pending", "processing", "ready"] },
+          },
+          select: { id: true },
+        },
+      },
     });
     if (!table) {
       return NextResponse.json(
         { error: "Selected dining table not found" },
         { status: 404 }
+      );
+    }
+
+    if (table.status === "occupied" || table.orders.length > 0) {
+      return NextResponse.json(
+        {
+          error: `Meja ${table.table_code} sedang digunakan pelanggan lain. Silakan pilih meja lain yang tersedia.`,
+        },
+        { status: 409 }
       );
     }
 

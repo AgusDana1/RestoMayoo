@@ -55,6 +55,32 @@ export default function PaymentClient({ orderNumber }: { orderNumber: string }) 
   const [copied, setCopied] = useState<boolean>(false);
   const [successToast, setSuccessToast] = useState<string>("");
 
+  const prevStatusRef = React.useRef<string | null>(null);
+
+  const playOrderReadyChime = () => {
+    try {
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContextClass) return;
+      const ctx = new AudioContextClass();
+      const playTone = (freq: number, start: number, duration: number) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
+        gain.gain.setValueAtTime(0.18, ctx.currentTime + start);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(ctx.currentTime + start);
+        osc.stop(ctx.currentTime + start + duration);
+      };
+      playTone(587.33, 0, 0.35); // D5
+      playTone(880, 0.2, 0.45);   // A5
+    } catch (e) {
+      console.warn("Could not play chime:", e);
+    }
+  };
+
   // Review states
   const [rating, setRating] = useState<number>(5);
   const [hoverRating, setHoverRating] = useState<number>(0);
@@ -87,6 +113,23 @@ export default function PaymentClient({ orderNumber }: { orderNumber: string }) 
     }, 5000);
     return () => clearInterval(interval);
   }, [fetchOrder]);
+
+  useEffect(() => {
+    if (order) {
+      if (typeof window !== "undefined") {
+        if (order.status === "completed") {
+          // Keep active order reference for completion toast or clear
+        } else {
+          localStorage.setItem("resto_mayo_active_order", order.order_number);
+        }
+      }
+
+      if (order.status === "ready" && prevStatusRef.current && prevStatusRef.current !== "ready") {
+        playOrderReadyChime();
+      }
+      prevStatusRef.current = order.status;
+    }
+  }, [order]);
 
   const handleConfirmPayment = async () => {
     try {
@@ -345,6 +388,39 @@ export default function PaymentClient({ orderNumber }: { orderNumber: string }) 
                   <span>I Have Completed Payment &rarr;</span>
                 )}
               </button>
+            </div>
+          )}
+
+          {/* Order Ready Alert Notification Banner */}
+          {order.status === "ready" && (
+            <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-400 text-red-950 border-2 border-yellow-300 shadow-xl shadow-amber-500/20 animate-pulse flex items-start space-x-3.5">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-red-600 text-yellow-300 flex items-center justify-center text-xl sm:text-2xl shrink-0 shadow-md">
+                🔔
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center space-x-2">
+                  <span className="px-2.5 py-0.5 rounded-full bg-red-600 text-white text-[10px] sm:text-[11px] font-black uppercase tracking-wider shadow-xs">
+                    Siap Diambil / Order Ready
+                  </span>
+                  <span className="text-xs font-bold text-red-900">Meja {order.table?.table_code}</span>
+                </div>
+                <h4 className="text-sm sm:text-base font-black text-red-950 font-poppins mt-1">
+                  Pesanan Anda Sudah Selesai Disiapkan! 🎉
+                </h4>
+                <p className="text-[11px] sm:text-xs text-red-950/90 font-medium mt-1 leading-relaxed">
+                  Makanan dan minuman Anda sudah siap. Silakan ambil pesanan di counter pick-up dengan menyebutkan <strong>Meja {order.table?.table_code}</strong> (#{order.order_number}) atau pelayan kami akan mengantarkannya ke meja Anda.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {order.status === "completed" && (
+            <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 flex items-center space-x-3">
+              <span className="text-2xl">🍽️</span>
+              <div className="text-xs">
+                <h4 className="font-bold text-emerald-950">Pesanan Telah Selesai Dihidangkan</h4>
+                <p className="text-emerald-800">Selamat menikmati hidangan lezat Anda di Resto Mayo!</p>
+              </div>
             </div>
           )}
 

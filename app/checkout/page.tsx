@@ -32,10 +32,19 @@ export default function CheckoutPage() {
         const data = await res.json();
         setTables(data);
         if (tableId) {
-          setSelectedTableId(tableId);
+          const match = data.find((t: Table) => t.id === Number(tableId));
+          if (match && match.status !== "occupied") {
+            setSelectedTableId(match.id);
+          } else {
+            setSelectedTableId("");
+          }
         } else if (tableCode) {
           const match = data.find((t: Table) => t.table_code === tableCode);
-          if (match) setSelectedTableId(match.id);
+          if (match && match.status !== "occupied") {
+            setSelectedTableId(match.id);
+          } else {
+            setSelectedTableId("");
+          }
         }
       }
     } catch (e) {
@@ -73,9 +82,15 @@ export default function CheckoutPage() {
     try {
       setSubmitting(true);
       const chosenTable = tables.find((t) => t.id === Number(selectedTableId));
-      if (chosenTable) {
-        setCustomerInfo(name.trim(), chosenTable.table_code, chosenTable.id);
+      if (!chosenTable) {
+        setErrorMsg("Please select a valid table.");
+        return;
       }
+      if (chosenTable.status === "occupied") {
+        setErrorMsg(`Table ${chosenTable.table_code} is currently occupied by another customer. Please select another table.`);
+        return;
+      }
+      setCustomerInfo(name.trim(), chosenTable.table_code, chosenTable.id);
 
       const res = await fetch("/api/orders", {
         method: "POST",
@@ -99,6 +114,9 @@ export default function CheckoutPage() {
       }
 
       clearCart();
+      if (typeof window !== "undefined") {
+        localStorage.setItem("resto_mayo_active_order", data.order_number);
+      }
       router.push(`/payment/${data.order_number}`);
     } catch (err: any) {
       setErrorMsg(err.message || "An error occurred while processing your order.");
@@ -206,11 +224,14 @@ export default function CheckoutPage() {
                   className="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl border border-resto-yellow-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-resto-red-500 focus:border-resto-yellow-400 transition-all bg-white text-stone-800 cursor-pointer"
                 >
                   <option value="">-- Choose Resto Mayo Table --</option>
-                  {tables.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      Table {t.table_code} (Table #{t.table_number}) {t.status === "occupied" ? "• Occupied" : "• Available"}
-                    </option>
-                  ))}
+                  {tables.map((t) => {
+                    const isOccupied = t.status === "occupied";
+                    return (
+                      <option key={t.id} value={t.id} disabled={isOccupied}>
+                        Table {t.table_code} (Table #{t.table_number}) {isOccupied ? "⛔ Sedang Digunakan (Occupied)" : "✓ Tersedia (Available)"}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
             </div>

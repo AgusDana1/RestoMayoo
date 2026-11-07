@@ -1,6 +1,8 @@
+import React, { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { CartProvider } from "../context/CartContext";
+import OrderNotification from "../components/OrderNotification";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -41,7 +43,12 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col font-sans bg-white text-gray-800">
-        <CartProvider>{children}</CartProvider>
+        <CartProvider>
+          {children}
+          <Suspense fallback={null}>
+            <OrderNotification />
+          </Suspense>
+        </CartProvider>
       </body>
     </html>
   );
