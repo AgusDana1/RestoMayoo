@@ -71,15 +71,48 @@ async function callGemini(contents: string): Promise<string> {
 }
 
 /* =========================================================================
-   INTELLIGENT LOCAL FALLBACK LOGIC
+   INTELLIGENT LOCAL FALLBACK & CATEGORY DETECTION LOGIC
    Ensures that if external AI services hit a network spike, 503, or rate limit,
    the website NEVER crashes or displays errors to users or admins.
    ========================================================================= */
 
+function detectCartCategories(cartItems: any[], allProducts: any[]) {
+  let hasFood = false;
+  let hasDrink = false;
+  let hasDimsum = false;
+
+  for (const item of cartItems) {
+    const cat = (item.categoryName || "").toLowerCase();
+    const name = (item.name || "").toLowerCase();
+    const prod = (allProducts || []).find((p: any) => p.id === item.id);
+    const prodCat = (prod?.category?.name || "").toLowerCase();
+
+    const isDrink =
+      cat.includes("minum") ||
+      prodCat.includes("minum") ||
+      /es |teh|kopi|jus|drink|lemon|soda|air|mineral|tarik/i.test(name);
+    const isDimsum =
+      cat.includes("dimsum") ||
+      prodCat.includes("dimsum") ||
+      /dimsum|siomay|pangsit|hakau|bakpao/i.test(name);
+
+    if (isDrink) {
+      hasDrink = true;
+    } else if (isDimsum) {
+      hasDimsum = true;
+    } else {
+      hasFood = true;
+    }
+  }
+
+  return { hasFood, hasDrink, hasDimsum };
+}
+
 function fallbackFoodCopilot(query: string, allProducts: any[]) {
-  const q = (query || "").toLowerCase();
+  const q = (query || "").toLowerCase().trim();
   const available = (allProducts || []).filter((p) => p.is_available);
 
+  // Parse budget if specified (e.g. "30k", "30 ribu", "under 30000", "dibawah 25 rb")
   let maxBudget = Infinity;
   const budgetMatch = q.match(/(\d+)\s*(k|ribu|rb|000)?/);
   if (budgetMatch) {
@@ -90,6 +123,14 @@ function fallbackFoodCopilot(query: string, allProducts: any[]) {
     if (num >= 5000) maxBudget = num;
   }
 
+  // Tokenize search query
+  const stopWords = new Set([
+    "saya", "mau", "pengen", "ingin", "cari", "tolong", "ada", "yang",
+    "di", "ke", "dan", "atau", "dong", "bisa", "untuk", "buat", "paling",
+    "ini", "itu", "sama", "menu", "apa"
+  ]);
+  const tokens = q.split(/[\s,.-]+/).filter((w) => w.length > 1 && !stopWords.has(w));
+
   const scored = available.map((p) => {
     let score = 0;
     const pName = (p.name || "").toLowerCase();
@@ -97,30 +138,72 @@ function fallbackFoodCopilot(query: string, allProducts: any[]) {
     const pCat = (p.category?.name || "").toLowerCase();
     const price = Number(p.price);
 
-    if (price <= maxBudget) score += 3;
+    // Budget check
+    if (price <= maxBudget) score += 4;
+    else if (maxBudget !== Infinity) score -= 5;
 
-    if (q.includes("kuah") && (pName.includes("kuah") || pName.includes("mie") || pDesc.includes("kuah"))) score += 5;
-    if (q.includes("pedas") && (pName.includes("pedas") || pDesc.includes("pedas") || pName.includes("geprek"))) score += 5;
-    if ((q.includes("minum") || q.includes("dingin") || q.includes("segar") || q.includes("es")) && (pCat.includes("minum") || pName.includes("es") || pDesc.includes("segar"))) score += 5;
-    if (q.includes("dimsum") && (pCat.includes("dimsum") || pName.includes("dimsum"))) score += 5;
-    if (q.includes("keju") && (pName.includes("keju") || pDesc.includes("keju") || pDesc.includes("melt"))) score += 5;
-    if (q.includes("vegetar") && !pName.includes("ayam") && !pName.includes("sapi") && !pName.includes("daging")) score += 4;
-    if (q.includes("nasi") && pName.includes("nasi")) score += 4;
+    // Token matching across name, category, and description
+    for (const t of tokens) {
+      if (pName.includes(t)) score += 12;
+      if (pCat.includes(t)) score += 8;
+      if (pDesc.includes(t)) score += 6;
+    }
+
+    // Direct category / keyword matching
+    if ((q.includes("makan") || q.includes("kenyang")) && pCat.includes("makan")) score += 6;
+    if (
+      (q.includes("minum") || q.includes("haus") || q.includes("segar") || q.includes("es") || q.includes("dingin")) &&
+      (pCat.includes("minum") || pName.includes("es") || pDesc.includes("segar"))
+    ) {
+      score += 8;
+    }
+    if (
+      (q.includes("dimsum") || q.includes("camilan") || q.includes("snack") || q.includes("kukus") || q.includes("siomay")) &&
+      (pCat.includes("dimsum") || pName.includes("dimsum"))
+    ) {
+      score += 8;
+    }
+    if (
+      (q.includes("kuah") || q.includes("hangat") || q.includes("sup") || q.includes("soup")) &&
+      (pName.includes("kuah") || pDesc.includes("kuah") || pName.includes("mie"))
+    ) {
+      score += 7;
+    }
+    if (
+      (q.includes("pedas") || q.includes("spicy") || q.includes("geprek") || q.includes("cabe")) &&
+      (pName.includes("pedas") || pDesc.includes("pedas") || pName.includes("geprek"))
+    ) {
+      score += 7;
+    }
+    if ((q.includes("manis") || q.includes("sweet")) && (pDesc.includes("manis") || pName.includes("manis") || pCat.includes("minum"))) {
+      score += 5;
+    }
+    if (
+      (q.includes("keju") || q.includes("cheese") || q.includes("melt")) &&
+      (pName.includes("keju") || pDesc.includes("keju") || pDesc.includes("melt"))
+    ) {
+      score += 7;
+    }
+    if ((q.includes("ayam") || q.includes("chicken")) && (pName.includes("ayam") || pDesc.includes("ayam"))) score += 8;
+    if ((q.includes("mie") || q.includes("noodle") || q.includes("bihun") || q.includes("kwetiau")) && (pName.includes("mie") || pDesc.includes("mie"))) score += 8;
+    if ((q.includes("nasi") || q.includes("rice")) && (pName.includes("nasi") || pDesc.includes("nasi"))) score += 8;
+    if ((q.includes("teh") || q.includes("tea")) && (pName.includes("teh") || pDesc.includes("teh"))) score += 8;
+    if ((q.includes("kopi") || q.includes("coffee")) && (pName.includes("kopi") || pDesc.includes("kopi"))) score += 8;
 
     return { product: p, score };
   });
 
   scored.sort((a, b) => b.score - a.score);
-  const best = scored.slice(0, 3).map((item) => ({
+  const best = scored.filter((item) => item.score > 0).slice(0, 3).map((item) => ({
     productId: item.product.id,
-    matchReason: `Pilihan lezat "${item.product.name}" yang pas dengan selera dan kriteria pencarianmu!`,
+    matchReason: `Pilihan hidangan lezat "${item.product.name}" yang paling pas dengan apa yang kamu cari!`,
   }));
 
   return {
-    interpretedMood: `Pencarian menu sesuai selera: "${query}"`,
+    interpretedMood: `Pencarian menu sesuai keinginanmu: "${query}"`,
     matches: best.length > 0 ? best : available.slice(0, 2).map((p) => ({
       productId: p.id,
-      matchReason: `Menu favorit Resto Mayo "${p.name}" yang sangat direkomendasikan.`,
+      matchReason: `Menu favorit Resto Mayo "${p.name}" yang sangat direkomendasikan untuk dicoba!`,
     })),
   };
 }
@@ -163,17 +246,47 @@ function fallbackSmartUpsell(cartItems: any[], allProducts: any[]) {
   const cartIds = (cartItems || []).map((c) => c.id);
   const available = (allProducts || []).filter((p) => p.is_available && !cartIds.includes(p.id));
 
-  const drinks = available.filter((p) => (p.category?.name || "").toLowerCase().includes("minum"));
-  const sides = available.filter((p) => (p.category?.name || "").toLowerCase().includes("dimsum"));
-  const candidates = [...drinks, ...sides, ...available];
+  const { hasFood, hasDrink } = detectCartCategories(cartItems, allProducts);
+
+  let targetCat = "Minuman";
+  let headline = "Lengkapi Makananmu dengan Minuman Segar!";
+  let reasonPrefix = "Minuman segar penyejuk dahaga yang pas menemani santap makananmu";
+
+  // RULE 1: Customer bought FOOD only -> Recommend DRINK (Minuman)
+  if (hasFood && !hasDrink) {
+    targetCat = "Minuman";
+    headline = "Lengkapi Makananmu dengan Minuman Segar!";
+    reasonPrefix = "Minuman dingin segar yang sangat cocok melegakan dahaga setelah menikmati makanan lezat";
+  }
+  // RULE 2: Customer bought DRINKS only -> Recommend FOOD (Makanan)
+  else if (hasDrink && !hasFood) {
+    targetCat = "Makanan";
+    headline = "Lengkapi Minumanmu dengan Makanan Favorit!";
+    reasonPrefix = "Hidangan lezat dan mengenyangkan yang pas banget dinikmati bareng minuman segarmu";
+  }
+  // RULE 3: Customer bought BOTH Food and Drinks -> Recommend DIMSUM
+  else if (hasFood && hasDrink) {
+    targetCat = "Dimsum";
+    headline = "Tambah Dimsum Biar Mejamu Makin Lengkap!";
+    reasonPrefix = "Cemilan dimsum lembut dan gurih yang sempurna melengkapi santap makanan & minumanmu";
+  }
+
+  // Pick items prioritizing targetCat
+  let candidates = available.filter((p) =>
+    (p.category?.name || "").toLowerCase().includes(targetCat.toLowerCase())
+  );
+  if (candidates.length < 2) {
+    const others = available.filter((p) => !candidates.some((c) => c.id === p.id));
+    candidates = [...candidates, ...others];
+  }
 
   const selected = candidates.slice(0, 2).map((item) => ({
     productId: item.id,
-    reason: `Teman bersantap paling pas untuk melengkapi pesanan "${cartItems[0]?.name || "hidanganmu"}" agar makin nikmat!`,
+    reason: `${reasonPrefix}: coba "${item.name}" yang nikmat!`,
   }));
 
   return {
-    headline: "Pasangan Sempurna untuk Makananmu",
+    headline,
     recommendations: selected,
   };
 }
@@ -234,39 +347,68 @@ export async function POST(req: Request) {
       }
 
       try {
+        const { hasFood, hasDrink } = detectCartCategories(cartItems, allProducts);
+
+        let requiredType = "DRINKS (Minuman)";
+        let requiredHeadline = "Lengkapi Makananmu dengan Minuman Segar!";
+        let ruleInstruction =
+          "The customer currently ordered FOOD dishes only. Rule: You MUST strictly recommend 1 to 2 REFRESHING DRINKS/BEVERAGES from category Minuman to quench their thirst.";
+
+        if (hasFood && !hasDrink) {
+          requiredType = "DRINKS (Minuman)";
+          requiredHeadline = "Lengkapi Makananmu dengan Minuman Segar!";
+          ruleInstruction =
+            "The customer ordered FOOD only. STRICT RULE: You MUST recommend 1 to 2 REFRESHING DRINKS/BEVERAGES (category: Minuman) to quench their thirst and pair with their food.";
+        } else if (hasDrink && !hasFood) {
+          requiredType = "FOOD (Makanan)";
+          requiredHeadline = "Lengkapi Minumanmu dengan Makanan Favorit!";
+          ruleInstruction =
+            "The customer ordered DRINKS only. STRICT RULE: You MUST recommend 1 to 2 DELICIOUS FOOD DISHES (category: Makanan) to satisfy their hunger and accompany their drink.";
+        } else if (hasFood && hasDrink) {
+          requiredType = "DIMSUM (Dimsum/Cemilan)";
+          requiredHeadline = "Tambah Dimsum Biar Mejamu Makin Lengkap!";
+          ruleInstruction =
+            "The customer ordered BOTH Food AND Drinks! STRICT RULE: You MUST recommend 1 to 2 DELICIOUS DIMSUM or SIDES (category: Dimsum) as the ultimate pairing to complete their feast.";
+        }
+
         const cartSummary = cartItems
-          .map((i: any) => `- ${i.name} (Qty: ${i.quantity})`)
+          .map((i: any) => `- ${i.name} (Cat: ${i.categoryName || "Unknown"}, Qty: ${i.quantity})`)
           .join("\n");
 
         const availableItems = (allProducts || [])
           .filter((p: any) => p.is_available && !cartItems.some((ci: any) => ci.id === p.id))
-          .map((p: any) => `[ID: ${p.id}] ${p.name} - Rp ${p.price} (${p.description || ""})`)
-          .slice(0, 15)
+          .map((p: any) => `[ID: ${p.id}] ${p.name} | Category: ${p.category?.name || "Dish"} | Rp ${p.price} | Desc: ${p.description || ""}`)
+          .slice(0, 18)
           .join("\n");
 
         if (!availableItems) {
           return NextResponse.json({ recommendations: [], headline: "" });
         }
 
-        const upsellPrompt = `You are an expert culinary sommelier and sales psychologist for "Resto Mayo", a restaurant known for savory mayonnaise dishes, fried rice, crispy dimsum, and refreshing beverages.
+        const upsellPrompt = `You are an expert restaurant cross-selling sommelier for "Resto Mayo".
 
-Customer's current cart:
+Customer's current cart items:
 ${cartSummary}
 
-Available items in the restaurant catalog (not in cart yet):
+Available items in restaurant catalog:
 ${availableItems}
 
+CRITICAL MANDATORY PAIRING RULE:
+Target Recommendation Type: ${requiredType}
+${ruleInstruction}
+
 TASK:
-Analyze the flavor profile, spice level, texture, and meal completeness of their cart.
-Select 1 to 2 PERFECT complementary items to recommend (e.g. if eating spicy or fried dishes, suggest an iced sweet drink or soothing dimsum; if ordering only food, suggest a signature beverage).
+1. Follow the STRICT RULE above to select 1 to 2 items from the catalog that match the required category (${requiredType}).
+2. Provide an appetizing 1-sentence pairing reason in Indonesian for each recommendation.
+3. Headline should be enticing in Indonesian (e.g., "${requiredHeadline}").
 
 Return STRICTLY a JSON object with this exact structure, with NO markdown backticks:
 {
-  "headline": "Short enticing headline e.g. Perfect pairing for your meal",
+  "headline": "${requiredHeadline}",
   "recommendations": [
     {
-      "productId": <number ID from the list>,
-      "reason": "1 concise, appetizing sentence why this item pairs perfectly with what they ordered"
+      "productId": <number ID from the catalog>,
+      "reason": "1 enticing sentence in Indonesian why this item is the perfect companion"
     }
   ]
 }`;
@@ -295,7 +437,7 @@ Return STRICTLY a JSON object with this exact structure, with NO markdown backti
           )
           .join("\n");
 
-        const copilotPrompt = `You are "Resto Mayo Food Copilot", an AI culinary assistant helping customers find the ideal meal based on their mood, cravings, budget, or dietary needs.
+        const copilotPrompt = `You are "Resto Mayo Food Copilot", an AI culinary assistant helping customers find the ideal meal based on their mood, cravings, budget, dietary needs, or manual search keywords.
 
 Customer Search Request:
 "${query}"
@@ -304,17 +446,17 @@ Resto Mayo Available Products:
 ${productCatalog}
 
 TASK:
-1. Interpret what the customer desires (e.g. spicy kick, warm comforting broth, budget under X, sweet snack, vegetarian, for sharing).
-2. Select 1 to 4 best matching items from the catalog. Only recommend items that are available.
-3. For each recommendation, provide an appetizing, personalized explanation why it matches their request.
+1. Interpret what the customer desires (whether it is a full sentence like "pengen kuah hangat", or simple keywords like "ayam", "mie", "es teh", "minuman", "jus", "dimsum", "pedas").
+2. Select 1 to 4 best matching items from the catalog. You MUST ALWAYS recommend at least 1-3 matching or closely related items from the available products. Do NOT return an empty matches list.
+3. For each recommendation, provide an appetizing explanation in Indonesian (1-2 sentences) explaining why this dish fits what they asked for.
 
 Return STRICTLY a JSON object with this exact structure, with NO markdown backticks:
 {
-  "interpretedMood": "Short summary of what the customer is craving or their criteria",
+  "interpretedMood": "Short summary in Indonesian of what the customer is craving or looking for",
   "matches": [
     {
       "productId": <number ID from catalog>,
-      "matchReason": "1 to 2 engaging sentences explaining why this dish fits their prompt"
+      "matchReason": "1 to 2 engaging sentences in Indonesian explaining why this dish fits their prompt"
     }
   ]
 }`;

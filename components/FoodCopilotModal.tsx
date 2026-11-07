@@ -102,13 +102,22 @@ export default function FoodCopilotModal({
           })
           .filter(Boolean);
 
-        // If no product matched by ID, fallback to available products
+        // If no product matched by ID, perform smart client-side token matching
         if (resolved.length === 0 && products.length > 0) {
-          const available = products.filter((p) => p.is_available);
-          const candidates = available.slice(0, 2);
+          const qLower = q.toLowerCase();
+          const tokens = qLower.split(/[\s,.-]+/).filter((w) => w.length > 1);
+          const matchedByTokens = products.filter((p) => {
+            const text = `${p.name} ${p.category?.name || ""} ${p.description || ""}`.toLowerCase();
+            return tokens.some((t) => text.includes(t));
+          });
+          const candidates =
+            matchedByTokens.length > 0
+              ? matchedByTokens.slice(0, 3)
+              : products.filter((p) => p.is_available).slice(0, 2);
+
           resolved = candidates.map((p) => ({
             productId: p.id,
-            matchReason: `Pilihan hidangan favorit "${p.name}" yang sangat direkomendasikan untukmu!`,
+            matchReason: `Pilihan lezat "${p.name}" yang pas dengan apa yang kamu cari!`,
             product: p,
           }));
         }
@@ -185,15 +194,29 @@ export default function FoodCopilotModal({
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="E.g. Warm broth under 30k, or crispy snacks for two..."
-                className="w-full pl-4 pr-12 py-3 rounded-2xl border-2 border-amber-300 focus:outline-none focus:border-red-600 focus:ring-2 focus:ring-yellow-300 text-xs sm:text-sm bg-white font-medium shadow-inner"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleSearch(query);
+                  }
+                }}
+                enterKeyHint="search"
+                placeholder="Ketik makanan atau minuman yang kamu mau (misal: ayam, es teh, pedas, kuah)..."
+                className="w-full pl-4 pr-24 py-3 rounded-2xl border-2 border-amber-300 focus:outline-none focus:border-red-600 focus:ring-2 focus:ring-yellow-300 text-xs sm:text-sm bg-white font-medium shadow-inner placeholder:text-stone-400"
               />
               <button
                 type="submit"
                 disabled={loading || !query.trim()}
-                className="absolute right-1.5 top-1.5 bottom-1.5 px-3 rounded-xl bg-gradient-to-r from-resto-red-600 to-resto-red-700 hover:from-resto-red-700 hover:to-resto-red-800 disabled:opacity-40 text-white font-bold text-xs shadow-xs cursor-pointer flex items-center justify-center"
+                className="absolute right-1.5 top-1.5 bottom-1.5 px-4 rounded-xl bg-gradient-to-r from-resto-red-600 to-resto-red-700 hover:from-resto-red-700 hover:to-resto-red-800 disabled:opacity-40 text-white font-bold text-xs shadow-xs cursor-pointer flex items-center justify-center space-x-1"
               >
-                {loading ? "..." : "Ask"}
+                {loading ? (
+                  <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  <>
+                    <span>Cari</span>
+                    <span>✨</span>
+                  </>
+                )}
               </button>
             </div>
           </form>

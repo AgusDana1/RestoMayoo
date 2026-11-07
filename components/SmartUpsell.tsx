@@ -82,13 +82,22 @@ export default function SmartUpsell({ cart, onAddToCart, compact = false }: Smar
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             action: "smart-upsell",
-            cartItems: cart.map((c) => ({ id: c.id, name: c.name, quantity: c.quantity })),
+            cartItems: cart.map((c) => ({
+              id: c.id,
+              name: c.name,
+              quantity: c.quantity,
+              categoryName:
+                c.categoryName ||
+                allProducts.find((p) => p.id === c.id)?.category?.name ||
+                "",
+            })),
             allProducts: allProducts.map((p) => ({
               id: p.id,
               name: p.name,
               price: Number(p.price),
               description: p.description,
               is_available: p.is_available,
+              category: p.category,
             })),
           }),
         });

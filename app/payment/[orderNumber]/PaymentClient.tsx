@@ -267,22 +267,22 @@ export default function PaymentClient({ orderNumber }: { orderNumber: string }) 
           {!isPaid && (
             <div className="space-y-4">
               {method === "qris" ? (
-                <div className="text-center p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-resto-yellow-50/40 border border-resto-yellow-200 space-y-3 sm:space-y-4">
-                  <div className="inline-flex items-center space-x-1 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-white border border-resto-yellow-300 text-[10px] sm:text-[11px] font-bold text-resto-yellow-900 uppercase">
+                <div className="flex flex-col items-center justify-center text-center p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-resto-yellow-50/40 border border-resto-yellow-200 space-y-3 sm:space-y-4">
+                  <div className="inline-flex items-center justify-center space-x-1.5 px-3 py-1 rounded-full bg-white border border-resto-yellow-300 text-[10px] sm:text-[11px] font-bold text-resto-yellow-900 uppercase shadow-2xs">
                     <span>📱</span>
                     <span>Scan QRIS Code</span>
                   </div>
                   
-                  <div className="inline-block p-3 sm:p-4 bg-white rounded-2xl sm:rounded-3xl shadow-md border-2 border-resto-yellow-200">
+                  <div className="flex items-center justify-center p-3 sm:p-4 bg-white rounded-2xl sm:rounded-3xl shadow-md border-2 border-resto-yellow-200">
                     <img
                       src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=RESTOMAYO-${order.order_number}-${order.total_amount}`}
                       alt="QRIS Code"
                       decoding="async"
-                      className="w-40 h-40 sm:w-48 sm:h-48 mx-auto rounded-xl"
+                      className="w-40 h-40 sm:w-48 sm:h-48 rounded-xl block mx-auto"
                     />
                   </div>
 
-                  <p className="text-[10px] sm:text-[11px] text-stone-500 max-w-sm mx-auto">
+                  <p className="text-[10px] sm:text-[11px] text-stone-500 max-w-sm mx-auto text-center leading-relaxed">
                     Supports Mobile Banking (BCA, Mandiri, BRI, BNI) and Digital Wallets (GoPay, OVO, DANA, ShopeePay).
                   </p>
                 </div>
