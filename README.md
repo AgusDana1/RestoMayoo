@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🍽️ Resto Mayo
+# 🍽️ Resto Mayoo
 ### Next-Generation Restaurant Ordering & Kitchen Display System (KDS)
 
 [![Next.js](https://img.shields.io/badge/Next.js-16.4.0-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
