@@ -9,6 +9,12 @@ function createPrismaClient() {
 
   try {
     const parsed = new URL(dbUrl);
+    const useSsl =
+      parsed.searchParams.get("ssl-mode")?.toUpperCase() === "REQUIRED" ||
+      parsed.searchParams.get("ssl") === "true" ||
+      dbUrl.toLowerCase().includes("ssl-mode=required") ||
+      dbUrl.toLowerCase().includes("ssl=true");
+
     poolConfig = {
       host: parsed.hostname,
       port: parsed.port ? parseInt(parsed.port, 10) : 3306,
@@ -18,6 +24,7 @@ function createPrismaClient() {
       connectTimeout: 30000,
       acquireTimeout: 30000,
       connectionLimit: 10,
+      ...(useSsl ? { ssl: { rejectUnauthorized: false } } : {}),
     };
   } catch {
     poolConfig = {
