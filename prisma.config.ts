@@ -6,6 +6,7 @@ export default defineConfig({
 
   migrations: {
     path: "prisma/migrations",
+    seed: "node -r dotenv/config ./node_modules/jiti/lib/jiti-cli.mjs ./prisma/seed.ts",
   },
 
   datasource: {

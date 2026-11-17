@@ -7,7 +7,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "seed": "node -r dotenv/config ./node_modules/jiti/lib/jiti-cli.mjs prisma/seed.ts",
+    "db:test": "node -r dotenv/config ./node_modules/jiti/lib/jiti-cli.mjs scripts/test-db.ts",
     "postinstall": "prisma generate"
+  },
+  "prisma": {
+    "seed": "node -r dotenv/config ./node_modules/jiti/lib/jiti-cli.mjs prisma/seed.ts"
   },
   "dependencies": {
     "@google/genai": "^2.32.0",
