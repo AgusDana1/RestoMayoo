@@ -6,7 +6,7 @@ import mariadb from "mariadb";
 function createPrismaClient() {
   const dbUrl = process.env.DATABASE_URL || "";
 
-  let poolConfig: mariadb.PoolConfig;
+  let poolConfig: any;
 
   try {
     const parsed = new URL(dbUrl);
@@ -36,7 +36,7 @@ function createPrismaClient() {
   }
 
   const pool = mariadb.createPool(poolConfig);
-  const adapter = new PrismaMariaDb(pool);
+  const adapter = new PrismaMariaDb(pool as any);
 
   return new PrismaClient({ adapter });
 }

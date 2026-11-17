@@ -1,52 +1,69 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-poppins: 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-heading: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-inter: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-poppins: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
-  /* Resto Mayo Appetizing Red Palette */
-  --color-resto-red-50: #FEF2F2;
-  --color-resto-red-100: #FEE2E2;
-  --color-resto-red-200: #FECACA;
-  --color-resto-red-300: #FCA5A5;
-  --color-resto-red-400: #F87171;
-  --color-resto-red-500: #EF4444;
-  --color-resto-red-600: #DC2626;
-  --color-resto-red-700: #B91C1C;
-  --color-resto-red-800: #991B1B;
-  --color-resto-red-900: #7F1D1D;
-  --color-resto-red-950: #450A0A;
+  /* Modern Playful Casual Dining Palette */
+  --color-warm-cream: #FFF9F0;
+  --color-tomato-red: #D94B35;
+  --color-tomato-red-dark: #B73824;
+  --color-tomato-red-light: #FCECE9;
+  --color-mustard-yellow: #F2C14E;
+  --color-mustard-yellow-dark: #D4A334;
+  --color-mustard-yellow-light: #FEF8E9;
+  --color-sage-green: #829477;
+  --color-sage-green-dark: #637359;
+  --color-sage-green-light: #F2F5F0;
+  --color-dark-brown: #30251F;
+  --color-dark-brown-muted: #5F4E44;
+  --color-dark-brown-light: #8E7A6F;
 
-  /* Resto Mayo Savory Yellow & Golden Mayo Palette */
-  --color-resto-yellow-50: #FEFCE8;
-  --color-resto-yellow-100: #FEF9C3;
-  --color-resto-yellow-200: #FEF08A;
-  --color-resto-yellow-300: #FDE047;
-  --color-resto-yellow-400: #FACC15;
-  --color-resto-yellow-500: #EAB308;
-  --color-resto-yellow-600: #CA8A04;
-  --color-resto-yellow-700: #A16207;
-  --color-resto-yellow-800: #854D0E;
-  --color-resto-yellow-900: #713F12;
-  --color-resto-yellow-950: #422006;
+  /* Resto Mayo Red Palette (Mapped to brand colors) */
+  --color-resto-red-50: #FCECE9;
+  --color-resto-red-100: #F9D5CF;
+  --color-resto-red-200: #F3ADA2;
+  --color-resto-red-300: #E77C6B;
+  --color-resto-red-400: #DF5C48;
+  --color-resto-red-500: #D94B35;
+  --color-resto-red-600: #D94B35;
+  --color-resto-red-700: #B73824;
+  --color-resto-red-800: #932B1A;
+  --color-resto-red-900: #742013;
+  --color-resto-red-950: #30251F;
+
+  /* Resto Mayo Yellow Palette (Mapped to brand colors) */
+  --color-resto-yellow-50: #FEF9EB;
+  --color-resto-yellow-100: #FDF1CE;
+  --color-resto-yellow-200: #FCE39E;
+  --color-resto-yellow-300: #F7CE68;
+  --color-resto-yellow-400: #F2C14E;
+  --color-resto-yellow-500: #DCA530;
+  --color-resto-yellow-600: #B8831F;
+  --color-resto-yellow-700: #946618;
+  --color-resto-yellow-800: #744E13;
+  --color-resto-yellow-900: #30251F;
+  --color-resto-yellow-950: #201713;
 
   /* Aliases for backwards compatibility */
-  --color-resto-gold-50: #FFFBEB;
-  --color-resto-gold-100: #FEF3C7;
-  --color-resto-gold-200: #FDE68A;
-  --color-resto-gold-300: #FCD34D;
-  --color-resto-gold-400: #FBBF24;
-  --color-resto-gold-500: #F59E0B;
-  --color-resto-gold-600: #D97706;
-  --color-resto-gold-700: #B45309;
-  --color-resto-gold-800: #92400E;
-  --color-resto-gold-900: #78350F;
-  --color-resto-gold-950: #451A03;
+  --color-resto-gold-50: #FEF9EB;
+  --color-resto-gold-100: #FDF1CE;
+  --color-resto-gold-200: #FCE39E;
+  --color-resto-gold-300: #F7CE68;
+  --color-resto-gold-400: #F2C14E;
+  --color-resto-gold-500: #DCA530;
+  --color-resto-gold-600: #B8831F;
+  --color-resto-gold-700: #946618;
+  --color-resto-gold-800: #744E13;
+  --color-resto-gold-900: #30251F;
+  --color-resto-gold-950: #201713;
 }
 
 :root {
-  --background: #FFFDF5;
-  --foreground: #1c1917;
+  --background: #FFF9F0;
+  --foreground: #30251F;
 }
 
 body {

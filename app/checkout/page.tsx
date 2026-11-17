@@ -16,7 +16,17 @@ interface Table {
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { cart, addToCart, customerName, tableCode, tableId, setCustomerInfo, clearCart, totalItems, totalAmount } = useCart();
+  const {
+    cart,
+    addToCart,
+    customerName,
+    tableCode,
+    tableId,
+    setCustomerInfo,
+    clearCart,
+    totalItems,
+    totalAmount,
+  } = useCart();
 
   const [tables, setTables] = useState<Table[]>([]);
   const [name, setName] = useState<string>(customerName || "");
@@ -65,7 +75,7 @@ export default function CheckoutPage() {
     setErrorMsg("");
 
     if (cart.length === 0) {
-      setErrorMsg("Your order cart is empty.");
+      setErrorMsg("Your order cart is empty. Please select dishes first.");
       return;
     }
 
@@ -75,7 +85,7 @@ export default function CheckoutPage() {
     }
 
     if (!selectedTableId) {
-      setErrorMsg("Please select your table number.");
+      setErrorMsg("Please choose your table number.");
       return;
     }
 
@@ -87,7 +97,9 @@ export default function CheckoutPage() {
         return;
       }
       if (chosenTable.status === "occupied") {
-        setErrorMsg(`Table ${chosenTable.table_code} is currently occupied by another customer. Please select another table.`);
+        setErrorMsg(
+          `Meja ${chosenTable.table_code} sedang digunakan pelanggan lain. Silakan pilih meja lain yang tersedia.`
+        );
         return;
       }
       setCustomerInfo(name.trim(), chosenTable.table_code, chosenTable.id);
@@ -102,6 +114,8 @@ export default function CheckoutPage() {
           items: cart.map((item) => ({
             product_id: item.id,
             quantity: item.quantity,
+            spicy_level: item.spicyLevel || null,
+            options: item.options || [],
             notes: item.notes || null,
           })),
         }),
@@ -126,133 +140,149 @@ export default function CheckoutPage() {
   };
 
   const paymentOptions = [
-    { id: "qris", title: "QRIS", desc: "BCA, GoPay, OVO, etc." },
-    { id: "gopay", title: "GoPay", desc: "E-Wallet" },
-    { id: "dana", title: "DANA", desc: "E-Wallet" },
-    { id: "shopeepay", title: "ShopeePay", desc: "E-Wallet" },
+    { id: "qris", title: "QRIS", desc: "Instant QR (GoPay, BCA, OVO, etc.)" },
+    { id: "gopay", title: "GoPay", desc: "Digital E-Wallet" },
+    { id: "dana", title: "DANA", desc: "Digital E-Wallet" },
+    { id: "shopeepay", title: "ShopeePay", desc: "Digital E-Wallet" },
     { id: "bank_transfer", title: "BRI Transfer", desc: "Direct Bank Transfer" },
-    { id: "ovo", title: "OVO", desc: "E-Wallet" },
+    { id: "ovo", title: "OVO", desc: "Digital E-Wallet" },
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FFFDF5] pb-16">
-      
-      {/* Top Accent Gradient Bar */}
-      <div className="h-1.5 w-full bg-gradient-to-r from-resto-red-600 via-resto-yellow-500 to-resto-red-700"></div>
-
-      {/* Navigation Header */}
-      <header className="bg-white/95 backdrop-blur-md border-b border-resto-yellow-100 sticky top-0 z-40 shadow-xs">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-14 sm:h-16 items-center">
+    <div className="min-h-screen flex flex-col bg-[#FFF9F0] text-[#30251F]">
+      {/* Header */}
+      <header className="bg-white border-b border-[#30251F]/10 sticky top-0 z-40 shadow-xs">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16 items-center">
             <Link
               href="/cart"
-              className="inline-flex items-center space-x-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-stone-700 hover:text-resto-red-700 hover:bg-resto-red-50 text-[11px] sm:text-xs font-semibold transition-colors border border-resto-yellow-200/80 bg-white shadow-2xs"
+              className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-xl text-xs font-semibold text-[#30251F] hover:text-[#D94B35] hover:bg-[#FFF9F0] transition-colors border border-[#30251F]/15 bg-white shadow-2xs"
             >
-              <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-resto-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              <svg
+                className="w-4 h-4 text-[#D94B35]"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2.5"
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                />
               </svg>
-              <span>Back</span>
+              <span>Back to Cart</span>
             </Link>
 
             <Link href="/" className="flex items-center space-x-2">
               <RestoMayoLogo size="sm" showText={true} />
             </Link>
+
+            <div className="w-16"></div>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-5xl mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8 flex-1 w-full">
-        
-        {/* Header Title */}
-        <div className="text-center max-w-xl mx-auto mb-5 sm:mb-8">
-          <span className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider bg-resto-yellow-100 text-resto-yellow-900 border border-resto-yellow-300 mb-1.5 shadow-2xs">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
+        {/* Title */}
+        <div className="text-center max-w-xl mx-auto mb-8">
+          <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#F2C14E]/25 text-[#30251F] border border-[#F2C14E]/60 mb-2 shadow-2xs">
             <span>✨</span>
             <span>Final Ordering Step</span>
           </span>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-stone-900 font-poppins">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#30251F] font-heading tracking-tight">
             Table Confirmation &amp; Payment
           </h1>
-          <p className="text-[11px] sm:text-xs md:text-sm text-stone-500 mt-1">
-            Complete your details and table number so the kitchen can prepare your meal.
+          <p className="text-xs sm:text-sm text-[#30251F]/70 mt-1">
+            Fill in your name, select your table, and choose how you would like to settle your bill.
           </p>
         </div>
 
         {errorMsg && (
-          <div className="mb-6 p-4 rounded-2xl bg-resto-red-50 border border-resto-red-200 text-xs sm:text-sm text-resto-red-700 font-medium flex items-center space-x-2">
+          <div className="mb-6 p-4 rounded-2xl bg-[#D94B35]/10 border border-[#D94B35]/30 text-xs sm:text-sm text-[#D94B35] font-semibold flex items-center space-x-2.5">
             <span>⚠️</span>
             <span>{errorMsg}</span>
           </div>
         )}
 
-        <form onSubmit={handleProcessOrder} className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-8">
-          
-          {/* Form Columns (2 Cols) */}
-          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-            
-            {/* Section 1: Table & Customer */}
-            <div className="bg-white rounded-2xl sm:rounded-3xl border border-resto-yellow-200/80 shadow-xs p-4 sm:p-6 space-y-3.5 sm:space-y-4">
-              <h2 className="text-sm sm:text-base font-bold text-stone-900 font-poppins pb-2.5 sm:pb-3 border-b border-resto-yellow-100 flex items-center space-x-2">
-                <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-resto-red-600 to-resto-red-700 text-resto-yellow-300 text-[10px] sm:text-xs flex items-center justify-center font-black shadow-xs">1</span>
-                <span>Table &amp; Guest Information</span>
+        <form
+          onSubmit={handleProcessOrder}
+          className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8"
+        >
+          {/* Left Columns: Inputs (2 Cols) */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Step 1: Guest & Table */}
+            <div className="bg-white rounded-3xl border border-[#30251F]/10 shadow-sm p-5 sm:p-7 space-y-5">
+              <h2 className="text-base font-bold text-[#30251F] font-heading pb-3 border-b border-[#30251F]/10 flex items-center space-x-2.5">
+                <span className="w-6 h-6 rounded-full bg-[#D94B35] text-white text-xs flex items-center justify-center font-bold">
+                  1
+                </span>
+                <span>Guest &amp; Table Details</span>
               </h2>
 
-              {/* Customer Name */}
+              {/* Guest Name */}
               <div>
-                <label className="block text-[11px] sm:text-xs font-bold uppercase tracking-wider text-stone-700 mb-1 font-poppins">
-                  Guest Full Name <span className="text-resto-red-600">*</span>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#30251F] mb-1.5 font-heading">
+                  Your Full Name <span className="text-[#D94B35]">*</span>
                 </label>
                 <input
                   type="text"
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="E.g. John Doe"
-                  className="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl border border-resto-yellow-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-resto-red-500 focus:border-resto-yellow-400 transition-all bg-white"
+                  placeholder="e.g. Budi Santoso"
+                  className="w-full px-4 py-3 rounded-xl border border-[#30251F]/20 text-sm focus:outline-none focus:ring-2 focus:ring-[#D94B35] focus:border-[#D94B35] transition-all bg-white"
                 />
               </div>
 
               {/* Table Selection */}
               <div>
-                <label className="block text-[11px] sm:text-xs font-bold uppercase tracking-wider text-stone-700 mb-1 font-poppins">
-                  Select Your Table Number <span className="text-resto-red-600">*</span>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#30251F] mb-1.5 font-heading">
+                  Choose Dining Table <span className="text-[#D94B35]">*</span>
                 </label>
                 <select
                   required
                   value={selectedTableId}
                   onChange={(e) => setSelectedTableId(e.target.value)}
-                  className="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl border border-resto-yellow-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-resto-red-500 focus:border-resto-yellow-400 transition-all bg-white text-stone-800 cursor-pointer"
+                  className="w-full px-4 py-3 rounded-xl border border-[#30251F]/20 text-sm focus:outline-none focus:ring-2 focus:ring-[#D94B35] focus:border-[#D94B35] transition-all bg-white text-[#30251F] cursor-pointer"
                 >
                   <option value="">-- Choose Resto Mayo Table --</option>
                   {tables.map((t) => {
                     const isOccupied = t.status === "occupied";
                     return (
                       <option key={t.id} value={t.id} disabled={isOccupied}>
-                        Table {t.table_code} (Table #{t.table_number}) {isOccupied ? "⛔ Sedang Digunakan (Occupied)" : "✓ Tersedia (Available)"}
+                        Meja {t.table_code} (Table #{t.table_number}){" "}
+                        {isOccupied ? "⛔ Sedang Digunakan (Occupied)" : "✓ Tersedia (Available)"}
                       </option>
                     );
                   })}
                 </select>
+                <p className="text-[11px] text-[#30251F]/60 mt-1.5">
+                  Occupied tables are locked automatically to ensure your seat is reserved for your meal.
+                </p>
               </div>
             </div>
 
-            {/* Section 2: Payment Method */}
-            <div className="bg-white rounded-2xl sm:rounded-3xl border border-resto-yellow-200/80 shadow-xs p-4 sm:p-6 space-y-3.5 sm:space-y-4">
-              <h2 className="text-sm sm:text-base font-bold text-stone-900 font-poppins pb-2.5 sm:pb-3 border-b border-resto-yellow-100 flex items-center space-x-2">
-                <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-resto-red-600 to-resto-red-700 text-resto-yellow-300 text-[10px] sm:text-xs flex items-center justify-center font-black shadow-xs">2</span>
+            {/* Step 2: Payment Method */}
+            <div className="bg-white rounded-3xl border border-[#30251F]/10 shadow-sm p-5 sm:p-7 space-y-5">
+              <h2 className="text-base font-bold text-[#30251F] font-heading pb-3 border-b border-[#30251F]/10 flex items-center space-x-2.5">
+                <span className="w-6 h-6 rounded-full bg-[#D94B35] text-white text-xs flex items-center justify-center font-bold">
+                  2
+                </span>
                 <span>Select Payment Method</span>
               </h2>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {paymentOptions.map((opt) => {
                   const isSelected = paymentMethod === opt.id;
                   return (
                     <label
                       key={opt.id}
-                      className={`relative flex flex-col p-2.5 sm:p-3.5 border rounded-xl sm:rounded-2xl cursor-pointer transition-all ${
+                      className={`relative flex flex-col p-3.5 rounded-2xl border cursor-pointer transition-all ${
                         isSelected
-                          ? "border-resto-red-600 bg-resto-yellow-50/80 ring-2 ring-resto-red-600/30 shadow-xs"
-                          : "border-resto-yellow-200/70 hover:border-resto-yellow-400 bg-white"
+                          ? "border-[#D94B35] bg-[#FFF9F0] ring-2 ring-[#D94B35]/25 shadow-xs"
+                          : "border-[#30251F]/15 hover:border-[#30251F]/30 bg-white"
                       }`}
                     >
                       <input
@@ -264,98 +294,131 @@ export default function CheckoutPage() {
                         className="sr-only"
                       />
                       <div className="flex items-center justify-between">
-                        <span className={`font-bold text-xs sm:text-sm ${isSelected ? "text-resto-red-700" : "text-stone-800"}`}>
+                        <span
+                          className={`font-bold text-sm ${
+                            isSelected ? "text-[#D94B35]" : "text-[#30251F]"
+                          }`}
+                        >
                           {opt.title}
                         </span>
                         <span
-                          className={`w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full border-2 flex items-center justify-center ${
-                            isSelected ? "border-resto-red-600 bg-resto-red-600" : "border-stone-300"
+                          className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                            isSelected
+                              ? "border-[#D94B35] bg-[#D94B35]"
+                              : "border-[#30251F]/30"
                           }`}
                         >
-                          {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-resto-yellow-300"></span>}
+                          {isSelected && (
+                            <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
+                          )}
                         </span>
                       </div>
-                      <span className="text-[9px] sm:text-[10px] text-stone-400 mt-1">{opt.desc}</span>
+                      <span className="text-[10px] text-[#30251F]/60 mt-1 leading-snug">
+                        {opt.desc}
+                      </span>
                     </label>
                   );
                 })}
               </div>
             </div>
-
           </div>
 
-          {/* Right Summary Column */}
+          {/* Right Column: Order Summary (1 Col) */}
           <div className="space-y-4">
-            <div className="bg-gradient-to-b from-white to-resto-yellow-50/30 rounded-2xl sm:rounded-3xl border border-resto-yellow-200 shadow-md p-4 sm:p-6 space-y-4 sm:space-y-6 sticky top-20 sm:top-24">
-              <div className="flex items-center justify-between pb-2.5 sm:pb-3 border-b border-resto-yellow-200/80">
-                <h2 className="text-sm sm:text-base font-bold text-stone-900 font-poppins">
-                  Your Order ({totalItems})
+            <div className="bg-white rounded-3xl border border-[#30251F]/10 shadow-sm p-6 space-y-5 sticky top-24">
+              <div className="flex items-center justify-between pb-3.5 border-b border-[#30251F]/10">
+                <h2 className="text-base font-bold text-[#30251F] font-heading">
+                  Order Summary
                 </h2>
-                <span className="text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full bg-resto-yellow-100 text-resto-yellow-900 border border-resto-yellow-300">
-                  Menu Items
+                <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#D94B35]/10 text-[#D94B35]">
+                  {totalItems} Items
                 </span>
               </div>
 
-              {/* Mini Item List */}
-              <div className="max-h-48 sm:max-h-56 overflow-y-auto divide-y divide-resto-yellow-100 space-y-1.5 sm:space-y-2 pr-1">
+              {/* Items List */}
+              <div className="max-h-56 overflow-y-auto divide-y divide-[#30251F]/8 space-y-2 pr-1">
                 {cart.map((item) => (
-                  <div key={item.id} className="pt-2 flex items-center justify-between text-xs">
-                    <div>
-                      <span className="font-semibold text-stone-800 text-[11px] sm:text-xs">{item.name}</span>
-                      <span className="text-stone-400 block text-[10px] sm:text-[11px]">x{item.quantity}</span>
+                  <div
+                    key={item.key || item.id}
+                    className="pt-2 flex items-start justify-between text-xs"
+                  >
+                    <div className="pr-2 min-w-0">
+                      <span className="font-semibold text-[#30251F] block truncate">
+                        {item.name}
+                      </span>
+                      {item.spicyLevel && (
+                        <span className="text-[10px] text-[#D94B35] block">
+                          {item.spicyLevel}
+                        </span>
+                      )}
+                      {item.options && item.options.length > 0 && (
+                        <span className="text-[10px] text-[#829477] block truncate">
+                          + {item.options.map((o) => o.name).join(", ")}
+                        </span>
+                      )}
+                      <span className="text-[#30251F]/50 block text-[10px]">
+                        x{item.quantity} portion
+                      </span>
                     </div>
-                    <span className="font-bold text-resto-red-700 text-xs sm:text-sm">
+                    <span className="font-bold text-[#D94B35] text-xs shrink-0">
                       {formatRupiah(item.price * item.quantity)}
                     </span>
                   </div>
                 ))}
               </div>
 
-              {/* Calculations */}
-              <div className="space-y-2 pt-2.5 sm:pt-3 border-t border-resto-yellow-200/80 text-[11px] sm:text-xs">
-                <div className="flex justify-between text-stone-600">
+              {/* Price Calculations */}
+              <div className="space-y-2.5 pt-3 border-t border-[#30251F]/10 text-xs">
+                <div className="flex justify-between text-[#30251F]/80">
                   <span>Subtotal</span>
-                  <span className="font-semibold text-stone-900">{formatRupiah(totalAmount)}</span>
+                  <span className="font-semibold text-[#30251F]">
+                    {formatRupiah(totalAmount)}
+                  </span>
                 </div>
-                <div className="flex justify-between text-stone-600">
-                  <span>Tax &amp; Service</span>
-                  <span className="text-emerald-700 font-bold">Included</span>
+                <div className="flex justify-between text-[#30251F]/80">
+                  <span>Restaurant Tax (PB1)</span>
+                  <span className="text-[#829477] font-bold">Included</span>
                 </div>
-                <div className="pt-2.5 sm:pt-3 border-t border-resto-yellow-200/80 flex justify-between items-baseline">
-                  <span className="text-xs sm:text-sm font-bold text-stone-900">Total Payment</span>
-                  <span className="text-lg sm:text-xl font-black text-resto-red-700 font-poppins">
+                <div className="flex justify-between text-[#30251F]/80">
+                  <span>Service Fee</span>
+                  <span className="text-[#829477] font-bold">Free</span>
+                </div>
+                <div className="pt-3 border-t border-[#30251F]/10 flex justify-between items-baseline">
+                  <span className="text-sm font-bold text-[#30251F]">
+                    Total Payment
+                  </span>
+                  <span className="text-2xl font-black text-[#D94B35] font-heading">
                     {formatRupiah(totalAmount)}
                   </span>
                 </div>
               </div>
 
-              {/* Submit Button */}
+              {/* Submit CTA */}
               <button
                 type="submit"
                 disabled={submitting || cart.length === 0}
-                className="w-full py-3 sm:py-4 rounded-xl sm:rounded-2xl bg-gradient-to-r from-resto-red-600 via-resto-red-700 to-resto-yellow-600 hover:from-resto-red-700 hover:to-resto-yellow-700 disabled:opacity-50 text-white font-bold text-xs sm:text-sm shadow-xl shadow-resto-red-600/25 transition-all active:scale-98 flex items-center justify-center space-x-2 cursor-pointer"
+                className="w-full py-4 rounded-xl bg-[#D94B35] hover:bg-[#C23E2A] disabled:opacity-50 text-white font-bold text-sm shadow-md transition-all active:scale-98 flex items-center justify-center space-x-2 cursor-pointer"
               >
                 {submitting ? (
-                  <span>Sending Order...</span>
+                  <span>Sending Order to Kitchen...</span>
                 ) : (
                   <span>Send Order to Kitchen &rarr;</span>
                 )}
               </button>
 
-              <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-resto-yellow-100/70 border border-resto-yellow-200 text-[9px] sm:text-[10px] text-stone-600 text-center leading-relaxed flex items-center space-x-1.5">
+              <div className="p-3 rounded-2xl bg-[#FFF9F0] border border-[#F2C14E]/40 text-[11px] text-[#30251F]/75 text-center leading-relaxed flex items-center space-x-2">
                 <span>🔔</span>
-                <span>Your order ticket will instantly appear on the chef&apos;s Kitchen Display System (KDS).</span>
+                <span className="text-left">
+                  Your ticket will immediately display on the kitchen screen for live preparation.
+                </span>
               </div>
             </div>
 
-            {/* Smart AI Upselling & Pairing Recommendations */}
+            {/* AI Smart Upsell in compact mode */}
             <SmartUpsell cart={cart} onAddToCart={addToCart} compact={true} />
           </div>
-
         </form>
-
       </main>
-
     </div>
   );
 }

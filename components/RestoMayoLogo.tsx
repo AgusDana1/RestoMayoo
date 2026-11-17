@@ -16,107 +16,89 @@ export default function RestoMayoLogo({
   const sizeClasses = {
     sm: "w-7 h-7 sm:w-8 sm:h-8",
     md: "w-8 h-8 sm:w-9 sm:h-9",
-    lg: "w-10 h-10 sm:w-12 sm:h-12",
-    xl: "w-14 h-14 sm:w-16 sm:h-16",
+    lg: "w-10 h-10 sm:w-11 sm:h-11",
+    xl: "w-13 h-13 sm:w-15 sm:h-15",
   };
 
   return (
-    <div className={`inline-flex items-center space-x-2 ${className}`}>
-      {/* Resto Mayo Brand Icon */}
+    <div className={`inline-flex items-center space-x-2.5 ${className}`}>
+      {/* Resto Mayo Cloche & Mayo Swirl Badge */}
       <div
-        className={`${sizeClasses[size]} relative rounded-xl sm:rounded-2xl bg-gradient-to-br from-resto-red-600 via-resto-red-700 to-resto-yellow-600 p-1 flex items-center justify-center shadow-sm border border-resto-yellow-300/70 overflow-hidden shrink-0`}
+        className={`${sizeClasses[size]} relative rounded-2xl bg-[#D94B35] p-1.5 flex items-center justify-center shadow-xs border border-[#F2C14E]/60 overflow-hidden shrink-0`}
       >
         <svg
           viewBox="0 0 64 64"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className="w-full h-full drop-shadow-2xs"
+          className="w-full h-full"
         >
           {/* Steam wisps */}
           <path
-            d="M26 12C24.5 9 27 7 25.5 4"
-            stroke="#FEF08A"
-            strokeWidth="2.2"
+            d="M26 11C24.5 8 27 6 25.5 3"
+            stroke="#F2C14E"
+            strokeWidth="2.4"
             strokeLinecap="round"
           />
           <path
-            d="M32 13C30.5 10 33.5 7.5 32 4"
-            stroke="#FACC15"
+            d="M32 12C30.5 9 33.5 6.5 32 3"
+            stroke="#FFF9F0"
             strokeWidth="2.6"
             strokeLinecap="round"
           />
           <path
-            d="M38 12C36.5 9 39 7 37.5 4"
-            stroke="#FEF08A"
-            strokeWidth="2.2"
+            d="M38 11C36.5 8 39 6 37.5 3"
+            stroke="#F2C14E"
+            strokeWidth="2.4"
             strokeLinecap="round"
           />
 
           {/* Cloche Knob */}
-          <circle cx="32" cy="17" r="3" fill="#FEF08A" />
-          <path d="M30 19H34V22H30Z" fill="#FACC15" />
+          <circle cx="32" cy="17" r="3" fill="#F2C14E" />
+          <path d="M30 19H34V22H30Z" fill="#F2C14E" />
 
           {/* Cloche Dome */}
           <path
             d="M13 36C13 24 21 22 32 22C43 22 51 24 51 36H13Z"
-            fill="url(#clocheGrad)"
+            fill="#FFF9F0"
           />
 
-          {/* Dome reflection highlight */}
+          {/* Cloche reflection highlight */}
           <path
             d="M17 34C17 26.5 23 24.5 32 24.5"
             stroke="#FFFFFF"
             strokeWidth="1.8"
             strokeLinecap="round"
-            opacity="0.85"
-          />
-
-          {/* Crossed Fork & Knife / Chef motif in dome */}
-          <path
-            d="M28 28.5L36 36.5M36 28.5L28 36.5"
-            stroke="#991B1B"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            opacity="0.5"
+            opacity="0.9"
           />
 
           {/* Serving Platter Rim */}
-          <rect x="9" y="36" width="46" height="5" rx="2.5" fill="#FEF08A" />
-
-          {/* Serving Stand */}
-          <path d="M15 41L19 46H45L49 41H15Z" fill="#991B1B" opacity="0.9" />
+          <rect x="9" y="36" width="46" height="5" rx="2.5" fill="#F2C14E" />
 
           {/* Mayo / Sauce Swirl Accent */}
           <path
-            d="M21 53C27 50 37 56 43 52"
-            stroke="#FDE047"
-            strokeWidth="2.6"
+            d="M20 48C26 44 38 52 44 47"
+            stroke="#F2C14E"
+            strokeWidth="3.2"
             strokeLinecap="round"
           />
-
-          <defs>
-            <linearGradient
-              id="clocheGrad"
-              x1="32"
-              y1="22"
-              x2="32"
-              y2="36"
-              gradientUnits="userSpaceOnUse"
-            >
-              <stop stopColor="#FFFFFF" />
-              <stop offset="0.35" stopColor="#FEF08A" />
-              <stop offset="1" stopColor="#EAB308" />
-            </linearGradient>
-          </defs>
         </svg>
       </div>
 
       {showText && (
-        <span className="text-lg sm:text-xl font-black tracking-tight text-resto-red-700 font-poppins leading-none">
-          Resto<span className="text-resto-yellow-500">Mayo</span>
-        </span>
+        <div className="flex flex-col leading-none">
+          <div className="flex items-center space-x-1">
+            <span className="text-lg sm:text-2xl font-black tracking-tight text-[#D94B35] font-heading">
+              Resto
+            </span>
+            <span className="text-lg sm:text-2xl font-black tracking-tight text-[#F2C14E] font-heading">
+              Mayo
+            </span>
+          </div>
+          <span className="text-[9px] font-bold text-[#829477] uppercase tracking-wider mt-0.5 hidden sm:block">
+            Casual Dining &bull; Bali
+          </span>
+        </div>
       )}
     </div>
   );
 }
-

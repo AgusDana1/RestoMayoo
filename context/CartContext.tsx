@@ -2,14 +2,30 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 
-export interface CartItem {
-  id: number;
+export interface CartItemOption {
   name: string;
   price: number;
+}
+
+export interface CartItem {
+  id: number;
+  key?: string;
+  name: string;
+  price: number;
+  basePrice?: number;
   image?: string | null;
   categoryName?: string;
   quantity: number;
   notes?: string;
+  spicyLevel?: string;
+  options?: CartItemOption[];
+}
+
+export interface AddToCartCustomization {
+  spicyLevel?: string;
+  options?: CartItemOption[];
+  notes?: string;
+  quantity?: number;
 }
 
 interface CartContextType {
@@ -17,10 +33,19 @@ interface CartContextType {
   customerName: string;
   tableCode: string;
   tableId: number | null;
-  addToCart: (product: { id: number; name: string; price: number; image?: string | null; categoryName?: string }, notes?: string) => void;
-  updateQuantity: (id: number, delta: number) => void;
-  updateNotes: (id: number, notes: string) => void;
-  removeFromCart: (id: number) => void;
+  addToCart: (
+    product: {
+      id: number;
+      name: string;
+      price: number;
+      image?: string | null;
+      categoryName?: string;
+    },
+    customization?: string | AddToCartCustomization
+  ) => void;
+  updateQuantity: (keyOrId: string | number, delta: number) => void;
+  updateNotes: (keyOrId: string | number, notes: string) => void;
+  removeFromCart: (keyOrId: string | number) => void;
   clearCart: () => void;
   setCustomerInfo: (name: string, tableCode: string, tableId?: number | null) => void;
   totalItems: number;
@@ -28,6 +53,18 @@ interface CartContextType {
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
+
+function generateItemKey(
+  id: number,
+  spicyLevel?: string,
+  options?: CartItemOption[],
+  notes?: string
+): string {
+  const spicy = spicyLevel || "original";
+  const opts = (options || []).map((o) => o.name).sort().join("|");
+  const n = (notes || "").trim().toLowerCase();
+  return `${id}_${spicy}_${opts}_${n}`;
+}
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>(() => {
@@ -88,38 +125,73 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   };
 
   const addToCart = (
-    product: { id: number; name: string; price: number; image?: string | null; categoryName?: string },
-    notes?: string
+    product: {
+      id: number;
+      name: string;
+      price: number;
+      image?: string | null;
+      categoryName?: string;
+    },
+    customization?: string | AddToCartCustomization
   ) => {
+    let customObj: AddToCartCustomization = {};
+    if (typeof customization === "string") {
+      customObj = { notes: customization };
+    } else if (customization) {
+      customObj = customization;
+    }
+
+    const spicyLevel = customObj.spicyLevel || "Level 0 (Normal)";
+    const options = customObj.options || [];
+    const notes = customObj.notes || "";
+    const qtyToAdd = customObj.quantity && customObj.quantity > 0 ? customObj.quantity : 1;
+
+    const basePrice = Number(product.price);
+    const optionsTotal = options.reduce((sum, opt) => sum + (Number(opt.price) || 0), 0);
+    const spicyExtra = spicyLevel.includes("Level 3") ? 2000 : 0;
+    const finalUnitPrice = basePrice + optionsTotal + spicyExtra;
+
+    const itemKey = generateItemKey(product.id, spicyLevel, options, notes);
+
     setCart((prev) => {
-      const existing = prev.find((item) => item.id === product.id);
-      if (existing) {
-        return prev.map((item) =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + 1, notes: notes !== undefined ? notes : item.notes }
-            : item
-        );
+      const existingIdx = prev.findIndex(
+        (item) => (item.key || item.id.toString()) === itemKey
+      );
+      if (existingIdx >= 0) {
+        const copy = [...prev];
+        copy[existingIdx] = {
+          ...copy[existingIdx],
+          quantity: copy[existingIdx].quantity + qtyToAdd,
+        };
+        return copy;
       }
+
       return [
         ...prev,
         {
           id: product.id,
+          key: itemKey,
           name: product.name,
-          price: Number(product.price),
+          basePrice,
+          price: finalUnitPrice,
           image: product.image,
           categoryName: product.categoryName,
-          quantity: 1,
-          notes: notes || "",
+          quantity: qtyToAdd,
+          notes,
+          spicyLevel,
+          options,
         },
       ];
     });
   };
 
-  const updateQuantity = (id: number, delta: number) => {
+  const updateQuantity = (keyOrId: string | number, delta: number) => {
     setCart((prev) =>
       prev
         .map((item) => {
-          if (item.id === id) {
+          const match =
+            (item.key && item.key === keyOrId.toString()) || item.id === keyOrId;
+          if (match) {
             const newQty = item.quantity + delta;
             return newQty > 0 ? { ...item, quantity: newQty } : null;
           }
@@ -129,14 +201,23 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     );
   };
 
-  const updateNotes = (id: number, notes: string) => {
+  const updateNotes = (keyOrId: string | number, notes: string) => {
     setCart((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, notes } : item))
+      prev.map((item) => {
+        const match =
+          (item.key && item.key === keyOrId.toString()) || item.id === keyOrId;
+        return match ? { ...item, notes } : item;
+      })
     );
   };
 
-  const removeFromCart = (id: number) => {
-    setCart((prev) => prev.filter((item) => item.id !== id));
+  const removeFromCart = (keyOrId: string | number) => {
+    setCart((prev) =>
+      prev.filter(
+        (item) =>
+          !((item.key && item.key === keyOrId.toString()) || item.id === keyOrId)
+      )
+    );
   };
 
   const clearCart = () => {
@@ -175,4 +256,3 @@ export function useCart() {
   }
   return context;
 }
-

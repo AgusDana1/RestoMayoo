@@ -146,35 +146,38 @@ export default function SmartUpsell({ cart, onAddToCart, compact = false }: Smar
   };
 
   return (
-    <div className="rounded-2xl sm:rounded-3xl border-2 border-resto-yellow-300 bg-gradient-to-br from-amber-50/70 via-white to-resto-yellow-50/60 p-4 sm:p-5 shadow-sm space-y-3 relative overflow-hidden">
-      {/* Decorative sparkle background */}
-      <div className="absolute top-0 right-0 w-24 h-24 bg-resto-yellow-200/40 rounded-full blur-xl pointer-events-none"></div>
-
+    <div className="rounded-3xl border border-[#F2C14E]/60 bg-[#FFF9F0] p-5 shadow-xs space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <span className="p-1 sm:p-1.5 rounded-xl bg-gradient-to-r from-resto-red-600 to-resto-yellow-500 text-white text-xs sm:text-sm font-bold shadow-2xs">
+        <div className="flex items-center space-x-2.5">
+          <span className="w-7 h-7 rounded-xl bg-[#F2C14E] text-[#30251F] text-xs font-black flex items-center justify-center shadow-2xs">
             ✨
           </span>
           <div>
-            <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-resto-red-700 block">
-              Smart AI Pairing &bull; Chef Gemini
+            <span className="text-[10px] font-black uppercase tracking-wider text-[#D94B35] block">
+              Smart Pairing Recommendation
             </span>
-            <h3 className="text-xs sm:text-sm font-bold text-stone-900 font-poppins">
+            <h3 className="text-sm font-bold text-[#30251F] font-heading">
               {headline || "Perfect Add-on for Your Meal"}
             </h3>
           </div>
         </div>
 
         {loading && (
-          <span className="text-[10px] font-semibold text-stone-400 animate-pulse">
+          <span className="text-xs font-medium text-[#30251F]/50 animate-pulse">
             Analyzing...
           </span>
         )}
       </div>
 
       {/* Recommended Items Grid */}
-      <div className={`grid ${compact || recommendations.length === 1 ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"} gap-3`}>
+      <div
+        className={`grid ${
+          compact || recommendations.length === 1
+            ? "grid-cols-1"
+            : "grid-cols-1 sm:grid-cols-2"
+        } gap-3`}
+      >
         {recommendations.map((rec) => {
           const prod = rec.product;
           if (!prod) return null;
@@ -183,7 +186,7 @@ export default function SmartUpsell({ cart, onAddToCart, compact = false }: Smar
           return (
             <div
               key={prod.id}
-              className="bg-white rounded-xl sm:rounded-2xl border border-resto-yellow-200 p-3 flex items-center justify-between gap-3 shadow-2xs hover:border-resto-yellow-400 transition-all"
+              className="bg-white rounded-2xl border border-[#30251F]/10 p-3.5 flex items-center justify-between gap-3 shadow-2xs hover:border-[#F2C14E] transition-all"
             >
               <div className="flex items-center space-x-3 overflow-hidden">
                 <img
@@ -191,16 +194,16 @@ export default function SmartUpsell({ cart, onAddToCart, compact = false }: Smar
                   alt={prod.name}
                   loading="lazy"
                   decoding="async"
-                  className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl object-cover shrink-0 bg-resto-yellow-50 border border-resto-yellow-200"
+                  className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl object-cover shrink-0 bg-[#FFF9F0] border border-[#30251F]/10"
                 />
                 <div className="min-w-0">
-                  <h4 className="font-bold text-xs sm:text-sm text-stone-900 font-poppins truncate">
+                  <h4 className="font-bold text-xs sm:text-sm text-[#30251F] font-heading truncate">
                     {prod.name}
                   </h4>
-                  <p className="text-[10px] text-amber-800 line-clamp-1 italic font-medium">
+                  <p className="text-[10px] text-[#829477] line-clamp-1 italic font-medium">
                     &ldquo;{rec.reason}&rdquo;
                   </p>
-                  <span className="text-xs font-black text-resto-red-700 font-poppins block mt-0.5">
+                  <span className="text-xs font-extrabold text-[#D94B35] font-heading block mt-0.5">
                     {formatRupiah(prod.price)}
                   </span>
                 </div>
@@ -212,8 +215,8 @@ export default function SmartUpsell({ cart, onAddToCart, compact = false }: Smar
                 onClick={() => handleAdd(rec)}
                 className={`px-3 py-1.5 rounded-xl font-bold text-xs shrink-0 transition-all cursor-pointer shadow-xs ${
                   isAdded
-                    ? "bg-emerald-100 text-emerald-800 border border-emerald-300 cursor-default"
-                    : "bg-gradient-to-r from-resto-red-600 to-resto-red-700 hover:from-resto-red-700 hover:to-resto-red-800 text-white active:scale-95 border border-resto-yellow-300"
+                    ? "bg-[#829477]/20 text-[#829477] border border-[#829477]/40 cursor-default"
+                    : "bg-[#D94B35] hover:bg-[#C23E2A] text-white active:scale-95"
                 }`}
               >
                 {isAdded ? "✓ Added" : "+ Add"}
@@ -225,4 +228,3 @@ export default function SmartUpsell({ cart, onAddToCart, compact = false }: Smar
     </div>
   );
 }
-

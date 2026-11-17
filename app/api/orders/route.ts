@@ -127,7 +127,27 @@ export async function POST(request: Request) {
     const payment_method = validMethods.includes(rawPaymentMethod) ? rawPaymentMethod : "qris";
 
     // Validate items structure & prevent injection
-    const parsedItems: { product_id: number; quantity: number; notes: string | null }[] = [];
+    const VALID_ADDONS: Record<string, number> = {
+      "extra melted mozzarella": 5000,
+      "extra signature mayo dip": 3000,
+      "telur mata sapi / fried egg": 4000,
+      "extra kerupuk renyah": 3000,
+      "extra signature mayo cream": 4000,
+      "less ice (sedikit es)": 0,
+      "less sugar (sedikit gula)": 0,
+      "no ice (tanpa es)": 0,
+    };
+
+    interface ParsedOrderItem {
+      product_id: number;
+      quantity: number;
+      spicy_level: string | null;
+      options: string[];
+      addon_charge: number;
+      notes: string | null;
+    }
+
+    const parsedItems: ParsedOrderItem[] = [];
     for (const item of rawItems) {
       const pId = parsePositiveInt(item.product_id);
       const qty = parsePositiveInt(item.quantity);
@@ -137,10 +157,57 @@ export async function POST(request: Request) {
           { status: 400 }
         );
       }
+
+      let addonCharge = 0;
+      const recognizedOptions: string[] = [];
+
+      // Validate add-ons
+      if (Array.isArray(item.options)) {
+        for (const opt of item.options) {
+          const optName = typeof opt === "string" ? opt : opt?.name;
+          if (typeof optName === "string") {
+            const normalized = optName.toLowerCase().trim();
+            if (normalized in VALID_ADDONS) {
+              recognizedOptions.push(optName.trim());
+              addonCharge += VALID_ADDONS[normalized];
+            }
+          }
+        }
+      }
+
+      // Validate spice surcharge
+      let spicyLevelStr: string | null = null;
+      if (item.spicy_level || item.spicyLevel) {
+        const rawSpicy = String(item.spicy_level || item.spicyLevel).trim();
+        spicyLevelStr = sanitizePlainString(rawSpicy, 50);
+        if (rawSpicy.toLowerCase().includes("level 3") || rawSpicy.toLowerCase().includes("extra hot")) {
+          addonCharge += 2000;
+        }
+      }
+
+      const userNote = item.notes ? sanitizeText(item.notes, 200) : null;
+
+      // Construct a clean descriptive note for kitchen & receipts
+      const noteParts: string[] = [];
+      if (spicyLevelStr) {
+        noteParts.push(`[${spicyLevelStr}]`);
+      }
+      if (recognizedOptions.length > 0) {
+        noteParts.push(`[+ ${recognizedOptions.join(", ")}]`);
+      }
+      if (userNote) {
+        noteParts.push(`Catatan: ${userNote}`);
+      }
+
+      const finalNotes = noteParts.length > 0 ? noteParts.join(" ") : null;
+
       parsedItems.push({
         product_id: pId,
         quantity: qty,
-        notes: item.notes ? sanitizeText(item.notes, 200) : null,
+        spicy_level: spicyLevelStr,
+        options: recognizedOptions,
+        addon_charge: addonCharge,
+        notes: finalNotes,
       });
     }
 
@@ -161,14 +228,15 @@ export async function POST(request: Request) {
       if (!prod.is_available) {
         throw new Error(`Dish "${prod.name}" is currently sold out`);
       }
-      const price = Number(prod.price);
-      const total = price * item.quantity;
+      const basePrice = Number(prod.price);
+      const unitPrice = basePrice + item.addon_charge;
+      const total = unitPrice * item.quantity;
       totalAmount += total;
 
       return {
         product_id: item.product_id,
         quantity: item.quantity,
-        price,
+        price: unitPrice,
         total,
         notes: item.notes,
       };
