@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { getOptimizedImageUrl } from "../lib/image";
 
 interface Product {
@@ -44,10 +44,21 @@ export default function FoodCopilotModal({
 }: FoodCopilotModalProps) {
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
   const [interpretedMood, setInterpretedMood] = useState("");
   const [matches, setMatches] = useState<CopilotMatch[]>([]);
   const [addedIds, setAddedIds] = useState<number[]>([]);
   const [errorMsg, setErrorMsg] = useState("");
+
+  useEffect(() => {
+    if (!isOpen) {
+      setHasSearched(false);
+      setMatches([]);
+      setErrorMsg("");
+      setInterpretedMood("");
+      setLoading(false);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -65,6 +76,7 @@ export default function FoodCopilotModal({
 
     try {
       setLoading(true);
+      setHasSearched(true);
       setErrorMsg("");
       setMatches([]);
       setInterpretedMood("");
@@ -95,36 +107,20 @@ export default function FoodCopilotModal({
       setInterpretedMood(data.interpretedMood || "");
 
       if (data.matches && Array.isArray(data.matches)) {
-        let resolved = data.matches
+        const resolved = data.matches
           .map((m: any) => {
             const found = products.find((p) => Number(p.id) === Number(m.productId));
             return found ? { ...m, product: found } : null;
           })
           .filter(Boolean);
 
-        if (resolved.length === 0 && products.length > 0) {
-          const qLower = q.toLowerCase();
-          const tokens = qLower.split(/[\s,.-]+/).filter((w) => w.length > 1);
-          const matchedByTokens = products.filter((p) => {
-            const text = `${p.name} ${p.category?.name || ""} ${p.description || ""}`.toLowerCase();
-            return tokens.some((t) => text.includes(t));
-          });
-          const candidates =
-            matchedByTokens.length > 0
-              ? matchedByTokens.slice(0, 3)
-              : products.filter((p) => p.is_available).slice(0, 2);
-
-          resolved = candidates.map((p) => ({
-            productId: p.id,
-            matchReason: `Pilihan lezat "${p.name}" yang pas dengan apa yang kamu cari!`,
-            product: p,
-          }));
-        }
         setMatches(resolved);
+      } else {
+        setMatches([]);
       }
     } catch (err: any) {
       console.error("Food Copilot error:", err);
-      setErrorMsg("Food Copilot is momentarily catching its breath. Please try again.");
+      setErrorMsg("Food Copilot sedang memproses permintaan. Silakan coba kembali.");
     } finally {
       setLoading(false);
     }
@@ -177,7 +173,7 @@ export default function FoodCopilotModal({
             </button>
           </div>
           <p className="text-[11px] sm:text-xs text-[#FFF9F0]/90 mt-2 font-medium">
-            Describe your craving in plain words, and Gemini will find the exact dishes for you!
+            Tanyakan makanan atau minuman yang kamu inginkan, dan AI akan menganalisis menu yang sesuai secara teliti!
           </p>
         </div>
 
@@ -203,7 +199,7 @@ export default function FoodCopilotModal({
                   }
                 }}
                 enterKeyHint="search"
-                placeholder="E.g. kuah hangat gurih di bawah 30 ribu..."
+                placeholder="E.g. kuah hangat gurih di bawah 30 ribu, minuman diatas 50 ribuan..."
                 className="w-full pl-4 pr-22 py-3 rounded-2xl border border-[#EADBCA] focus:outline-none focus:border-[#D94B35] focus:ring-1 focus:ring-[#D94B35] text-xs sm:text-sm bg-white font-medium shadow-inner placeholder:text-[#8E7A6F]"
               />
               <button
@@ -226,7 +222,7 @@ export default function FoodCopilotModal({
           {/* Quick Prompts */}
           <div className="space-y-1.5">
             <span className="text-[10px] uppercase font-bold text-[#8E7A6F] tracking-wider block">
-              Try Quick Prompts:
+              Coba Rekomendasi Cepat:
             </span>
             <div className="flex flex-wrap gap-1.5">
               {quickPrompts.map((p, idx) => (
@@ -250,7 +246,7 @@ export default function FoodCopilotModal({
             <div className="py-8 text-center space-y-2">
               <div className="w-8 h-8 border-3 border-[#D94B35] border-t-transparent rounded-full animate-spin mx-auto"></div>
               <p className="text-xs text-[#5F4E44] font-medium animate-pulse">
-                Chef Gemini is consulting the Resto Mayo menu...
+                Chef Gemini sedang menganalisis menu Resto Mayo...
               </p>
             </div>
           )}
@@ -262,10 +258,10 @@ export default function FoodCopilotModal({
             </div>
           )}
 
-          {/* Interpreted Mood / Filter Criteria */}
-          {interpretedMood && !loading && (
+          {/* Interpreted Mood / Filter Criteria (Shown when there are matches) */}
+          {interpretedMood && !loading && matches.length > 0 && (
             <div className="p-3 rounded-2xl bg-[#F2F5F0] border border-[#829477]/30 text-xs text-[#30251F]">
-              <span className="font-bold text-[#829477] mr-1">🎯 AI Recommendation:</span>
+              <span className="font-bold text-[#829477] mr-1">🎯 Analisis AI:</span>
               <span>{interpretedMood}</span>
             </div>
           )}
@@ -274,7 +270,7 @@ export default function FoodCopilotModal({
           {!loading && matches.length > 0 && (
             <div className="space-y-2.5 pt-1">
               <h3 className="text-xs font-bold uppercase tracking-wider text-[#30251F] font-heading">
-                Recommended Dishes ({matches.length})
+                Rekomendasi Menu ({matches.length})
               </h3>
               <div className="space-y-2">
                 {matches.map((m) => {
@@ -321,6 +317,23 @@ export default function FoodCopilotModal({
                     </div>
                   );
                 })}
+              </div>
+            </div>
+          )}
+
+          {/* Menu Tidak Ditemukan State */}
+          {!loading && hasSearched && matches.length === 0 && (
+            <div className="text-center py-8 px-4 bg-white rounded-2xl border border-[#EADBCA] space-y-3 animate-in fade-in duration-200">
+              <div className="w-12 h-12 mx-auto rounded-2xl bg-[#FFF9F0] border border-[#F2C14E]/60 text-[#D94B35] flex items-center justify-center text-2xl shadow-2xs">
+                🔍
+              </div>
+              <div className="space-y-1.5">
+                <h3 className="font-extrabold text-base text-[#30251F] font-heading">
+                  Menu tidak ditemukan
+                </h3>
+                <p className="text-xs text-[#8E7A6F] max-w-sm mx-auto leading-relaxed">
+                  {interpretedMood || "Maaf, tidak ada menu yang sesuai dengan kriteria pencarian Anda. Silakan coba cari dengan kata kunci lain atau ubah rentang harga."}
+                </p>
               </div>
             </div>
           )}

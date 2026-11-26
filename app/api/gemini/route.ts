@@ -108,103 +108,251 @@ function detectCartCategories(cartItems: any[], allProducts: any[]) {
   return { hasFood, hasDrink, hasDimsum };
 }
 
-function fallbackFoodCopilot(query: string, allProducts: any[]) {
-  const q = (query || "").toLowerCase().trim();
-  const available = (allProducts || []).filter((p) => p.is_available);
+interface QueryConstraints {
+  minPrice: number | null;
+  minStrict: boolean;
+  maxPrice: number | null;
+  maxStrict: boolean;
+  requiredCategory: "minuman" | "makanan" | "dimsum" | null;
+}
 
-  // Parse budget if specified (e.g. "30k", "30 ribu", "under 30000", "dibawah 25 rb")
-  let maxBudget = Infinity;
-  const budgetMatch = q.match(/(\d+)\s*(k|ribu|rb|000)?/);
-  if (budgetMatch) {
-    let num = parseInt(budgetMatch[1], 10);
-    if (budgetMatch[2] === "k" || budgetMatch[2] === "ribu" || budgetMatch[2] === "rb") {
-      num *= 1000;
+function parseIndonesianPrice(numStr: string, unit?: string): number | null {
+  const cleaned = numStr.replace(/\./g, "").replace(/,/g, "");
+  let num = parseInt(cleaned, 10);
+  if (isNaN(num) || num <= 0) return null;
+  const u = (unit || "").toLowerCase();
+  if (u === "k" || u === "rb" || u === "ribu" || u === "ribuan" || num < 1000) {
+    if (num < 1000) num *= 1000;
+  }
+  return num >= 1000 ? num : null;
+}
+
+function extractQueryConstraints(query: string): QueryConstraints {
+  const q = (query || "").toLowerCase().trim();
+  let minPrice: number | null = null;
+  let minStrict = false;
+  let maxPrice: number | null = null;
+  let maxStrict = false;
+
+  // Check range e.g. "20rb - 30rb" or "antara 20 ribu sampai 35 ribu"
+  const rangeMatch = q.match(
+    /(?:antara\s*)?(?:rp\.?\s*)?(\d+(?:[.,]\d+)?)\s*(ribuan|ribu|rb|k)?\s*(?:-|sampai|hingga|sd|s\/d|ke)\s*(?:rp\.?\s*)?(\d+(?:[.,]\d+)?)\s*(ribuan|ribu|rb|k)?/i
+  );
+  if (rangeMatch) {
+    const low = parseIndonesianPrice(rangeMatch[1], rangeMatch[2] || rangeMatch[4]);
+    const high = parseIndonesianPrice(rangeMatch[3], rangeMatch[4] || rangeMatch[2]);
+    if (low !== null && high !== null && low <= high) {
+      minPrice = low;
+      maxPrice = high;
     }
-    if (num >= 5000) maxBudget = num;
   }
 
-  // Tokenize search query
-  const stopWords = new Set([
-    "saya", "mau", "pengen", "ingin", "cari", "tolong", "ada", "yang",
-    "di", "ke", "dan", "atau", "dong", "bisa", "untuk", "buat", "paling",
-    "ini", "itu", "sama", "menu", "apa"
-  ]);
-  const tokens = q.split(/[\s,.-]+/).filter((w) => w.length > 1 && !stopWords.has(w));
+  // Check "diatas / lebih dari / minimal / >" (including optional "harga/budget/rp")
+  const minMatch = q.match(
+    /(?:di\s*atas|lebih\s*(?:mahal\s*)?dari|minimal|min\b|mulai(?:\s*dari)?|>=|>)\s*(?:(?:harga|budget|rp\.?)\s*)*(\d+(?:[.,]\d+)?)\s*(ribuan|ribu|rb|k)?/i
+  );
+  if (minMatch) {
+    const val = parseIndonesianPrice(minMatch[1], minMatch[2]);
+    if (val !== null) {
+      minPrice = val;
+      minStrict = /di\s*atas|lebih\s*(?:mahal\s*)?dari|>/i.test(minMatch[0]) && !/>=/.test(minMatch[0]);
+    }
+  } else {
+    const suffixMinMatch = q.match(
+      /(?:rp\.?\s*)?(\d+(?:[.,]\d+)?)\s*(ribuan|ribu|rb|k)?\s*(?:ke\s*atas|keatas|\+)/i
+    );
+    if (suffixMinMatch) {
+      const val = parseIndonesianPrice(suffixMinMatch[1], suffixMinMatch[2]);
+      if (val !== null) {
+        minPrice = val;
+        minStrict = false;
+      }
+    }
+  }
 
-  const scored = available.map((p) => {
+  // Check "dibawah / kurang dari / maksimal / budget / <"
+  const maxMatch = q.match(
+    /(?:di\s*bawah|kurang\s*dari|lebih\s*murah\s*dari|maksimal|maks\b|max\b|budget(?:\s*maks)?|under|<=|<)\s*(?:(?:harga|budget|rp\.?)\s*)*(\d+(?:[.,]\d+)?)\s*(ribuan|ribu|rb|k)?/i
+  );
+  if (maxMatch) {
+    const val = parseIndonesianPrice(maxMatch[1], maxMatch[2]);
+    if (val !== null) {
+      maxPrice = val;
+      maxStrict = /di\s*bawah|kurang\s*dari|lebih\s*murah\s*dari|</i.test(maxMatch[0]) && !/<=/.test(maxMatch[0]);
+    }
+  } else {
+    const suffixMaxMatch = q.match(
+      /(?:rp\.?\s*)?(\d+(?:[.,]\d+)?)\s*(ribuan|ribu|rb|k)?\s*(?:ke\s*bawah|kebawah)/i
+    );
+    if (suffixMaxMatch) {
+      const val = parseIndonesianPrice(suffixMaxMatch[1], suffixMaxMatch[2]);
+      if (val !== null) {
+        maxPrice = val;
+        maxStrict = false;
+      }
+    }
+  }
+
+  // Check standalone "X ribuan" (e.g. "minuman 50 ribuan") if no min/max found yet
+  if (minPrice === null && maxPrice === null) {
+    const ribuanMatch = q.match(/(?:rp\.?\s*)?(\d+)\s*ribuan\b/i);
+    if (ribuanMatch) {
+      const base = parseIndonesianPrice(ribuanMatch[1], "ribuan");
+      if (base !== null) {
+        minPrice = base;
+        maxPrice = base + 9999;
+      }
+    }
+  }
+
+  // Detect strict single-category intent (ignore negated category mentions)
+  const qNoNeg = q.replace(/(?:bukan|selain|tanpa)\s+(?:minuman|makanan|dimsum)/gi, "");
+  const asksDrink = /\b(minuman|minum|haus|kopi|teh|jus|milkshake|milshake|soda|drink|beverages?)\b/i.test(qNoNeg);
+  const asksFood = /\b(makanan|makan|nasi|mie|ayam|risoles|lauk|kenyang|lapar)\b/i.test(qNoNeg);
+  const asksDimsum = /\b(dimsum|siomay|udang\s*keju|udang\s*mayo|cemilan|snack|kukus)\b/i.test(qNoNeg);
+
+  let requiredCategory: QueryConstraints["requiredCategory"] = null;
+  if (asksDrink && !asksFood && !asksDimsum) {
+    requiredCategory = "minuman";
+  } else if (asksFood && !asksDrink && !asksDimsum) {
+    requiredCategory = "makanan";
+  } else if (asksDimsum && !asksDrink && !asksFood) {
+    requiredCategory = "dimsum";
+  }
+
+  return { minPrice, minStrict, maxPrice, maxStrict, requiredCategory };
+}
+
+function matchesConstraints(product: any, c: QueryConstraints): boolean {
+  if (!product || !product.is_available) return false;
+  const price = Number(product.price);
+
+  if (c.minPrice !== null) {
+    if (c.minStrict ? price <= c.minPrice : price < c.minPrice) return false;
+  }
+  if (c.maxPrice !== null) {
+    if (c.maxStrict ? price >= c.maxPrice : price > c.maxPrice) return false;
+  }
+
+  if (c.requiredCategory) {
+    const catName = (product.category?.name || "").toLowerCase();
+    const pName = (product.name || "").toLowerCase();
+    const isDrinkItem =
+      catName.includes("minum") ||
+      /^(es |teh|kopi|jus|milkshake|milshake)/i.test(pName);
+    const isDimsumItem =
+      catName.includes("dimsum") ||
+      /dimsum|udang keju|udang mayo|udang selai|siomay/i.test(pName);
+
+    if (c.requiredCategory === "minuman" && !isDrinkItem) return false;
+    if (c.requiredCategory === "dimsum" && !isDimsumItem) return false;
+    if (c.requiredCategory === "makanan" && (isDrinkItem || isDimsumItem)) return false;
+  }
+
+  return true;
+}
+
+function formatConstraintNotFoundReason(query: string, c: QueryConstraints): string {
+  const parts: string[] = [];
+  if (c.requiredCategory) {
+    parts.push(`kategori ${c.requiredCategory}`);
+  }
+  if (c.minPrice !== null && c.maxPrice !== null) {
+    parts.push(`harga Rp ${c.minPrice.toLocaleString("id-ID")} – Rp ${c.maxPrice.toLocaleString("id-ID")}`);
+  } else if (c.minPrice !== null) {
+    parts.push(`harga ${c.minStrict ? "di atas" : "minimal"} Rp ${c.minPrice.toLocaleString("id-ID")}`);
+  } else if (c.maxPrice !== null) {
+    parts.push(`harga ${c.maxStrict ? "di bawah" : "maksimal"} Rp ${c.maxPrice.toLocaleString("id-ID")}`);
+  }
+
+  if (parts.length > 0) {
+    return `Menu tidak ditemukan untuk kriteria ${parts.join(" dengan ")}. Silakan coba kata kunci atau rentang harga lain.`;
+  }
+  return `Menu tidak ditemukan untuk pencarian "${query}". Silakan coba kata kunci lain yang tersedia di menu Resto Mayo.`;
+}
+
+function fallbackFoodCopilot(query: string, allProducts: any[]) {
+  const q = (query || "").toLowerCase().trim();
+  const constraints = extractQueryConstraints(q);
+
+  // First filter strictly by availability, price range, and category constraints
+  const eligible = (allProducts || []).filter((p) => matchesConstraints(p, constraints));
+
+  if (eligible.length === 0) {
+    return {
+      interpretedMood: formatConstraintNotFoundReason(query, constraints),
+      notFound: true,
+      matches: [],
+    };
+  }
+
+  // Strip price/filler words to see what culinary keywords remain
+  const fillerWords = new Set([
+    "saya", "mau", "pengen", "ingin", "cari", "tolong", "ada", "yang", "di", "ke",
+    "dan", "atau", "dong", "bisa", "untuk", "buat", "paling", "ini", "itu", "sama",
+    "menu", "apa", "harga", "budget", "dibawah", "bawah", "diatas", "atas", "lebih",
+    "dari", "kurang", "minimal", "maksimal", "antara", "sampai", "hingga", "ribu",
+    "ribuan", "rb", "rp", "murah", "mahal", "lagi", "enak", "cocok", "tapi", "dengan",
+    "makanan", "makan", "minuman", "minum", "dimsum", "cemilan", "snack"
+  ]);
+
+  const culinaryTokens = q
+    .split(/[\s,.-]+/)
+    .filter((w) => w.length > 1 && !fillerWords.has(w) && !/^\d+(k|rb)?$/i.test(w));
+
+  const scored = eligible.map((p) => {
     let score = 0;
     const pName = (p.name || "").toLowerCase();
     const pDesc = (p.description || "").toLowerCase();
     const pCat = (p.category?.name || "").toLowerCase();
-    const price = Number(p.price);
 
-    // Budget check
-    if (price <= maxBudget) score += 4;
-    else if (maxBudget !== Infinity) score -= 5;
-
-    // Token matching across name, category, and description
-    for (const t of tokens) {
+    for (const t of culinaryTokens) {
       if (pName.includes(t)) score += 12;
       if (pCat.includes(t)) score += 8;
       if (pDesc.includes(t)) score += 6;
     }
 
-    // Direct category / keyword matching
-    if ((q.includes("makan") || q.includes("kenyang")) && pCat.includes("makan")) score += 6;
-    if (
-      (q.includes("minum") || q.includes("haus") || q.includes("segar") || q.includes("es") || q.includes("dingin")) &&
-      (pCat.includes("minum") || pName.includes("es") || pDesc.includes("segar"))
-    ) {
-      score += 8;
-    }
-    if (
-      (q.includes("dimsum") || q.includes("camilan") || q.includes("snack") || q.includes("kukus") || q.includes("siomay")) &&
-      (pCat.includes("dimsum") || pName.includes("dimsum"))
-    ) {
-      score += 8;
-    }
-    if (
-      (q.includes("kuah") || q.includes("hangat") || q.includes("sup") || q.includes("soup")) &&
-      (pName.includes("kuah") || pDesc.includes("kuah") || pName.includes("mie"))
-    ) {
-      score += 7;
-    }
-    if (
-      (q.includes("pedas") || q.includes("spicy") || q.includes("geprek") || q.includes("cabe")) &&
-      (pName.includes("pedas") || pDesc.includes("pedas") || pName.includes("geprek"))
-    ) {
-      score += 7;
-    }
-    if ((q.includes("manis") || q.includes("sweet")) && (pDesc.includes("manis") || pName.includes("manis") || pCat.includes("minum"))) {
-      score += 5;
-    }
-    if (
-      (q.includes("keju") || q.includes("cheese") || q.includes("melt")) &&
-      (pName.includes("keju") || pDesc.includes("keju") || pDesc.includes("melt"))
-    ) {
-      score += 7;
-    }
-    if ((q.includes("ayam") || q.includes("chicken")) && (pName.includes("ayam") || pDesc.includes("ayam"))) score += 8;
-    if ((q.includes("mie") || q.includes("noodle") || q.includes("bihun") || q.includes("kwetiau")) && (pName.includes("mie") || pDesc.includes("mie"))) score += 8;
-    if ((q.includes("nasi") || q.includes("rice")) && (pName.includes("nasi") || pDesc.includes("nasi"))) score += 8;
-    if ((q.includes("teh") || q.includes("tea")) && (pName.includes("teh") || pDesc.includes("teh"))) score += 8;
-    if ((q.includes("kopi") || q.includes("coffee")) && (pName.includes("kopi") || pDesc.includes("kopi"))) score += 8;
+    // Synonym / intent matching
+    if ((q.includes("segar") || q.includes("seger") || q.includes("haus") || q.includes("dingin")) && (pCat.includes("minum") || pName.includes("es ") || pDesc.includes("iced") || pDesc.includes("chilled"))) score += 8;
+    if ((q.includes("pedas") || q.includes("spicy") || q.includes("cabe")) && (pName.includes("pedas") || pDesc.includes("spicy") || pDesc.includes("chili"))) score += 10;
+    if ((q.includes("keju") || q.includes("cheese") || q.includes("melt") || q.includes("lumer")) && (pName.includes("keju") || pDesc.includes("cheese") || pDesc.includes("mozzarella"))) score += 10;
+    if ((q.includes("manis") || q.includes("sweet") || q.includes("coklat")) && (pDesc.includes("sweet") || pDesc.includes("chocolate") || pName.includes("manis") || pName.includes("milo"))) score += 8;
+    if ((q.includes("gurih") || q.includes("savory") || q.includes("renyah") || q.includes("crispy")) && (pDesc.includes("savory") || pDesc.includes("crispy"))) score += 6;
+    if ((q.includes("ayam") || q.includes("chicken")) && (pName.includes("ayam") || pDesc.includes("chicken"))) score += 10;
+    if ((q.includes("udang") || q.includes("prawn") || q.includes("seafood")) && (pName.includes("udang") || pName.includes("seafood") || pDesc.includes("prawn"))) score += 10;
+    if ((q.includes("nasi") || q.includes("rice")) && (pName.includes("nasi") || pDesc.includes("rice"))) score += 10;
+    if ((q.includes("teh") || q.includes("tea")) && (pName.includes("teh") || pDesc.includes("tea"))) score += 10;
+    if ((q.includes("kopi") || q.includes("coffee")) && (pName.includes("kopi") || pDesc.includes("espresso"))) score += 10;
+    if ((q.includes("alpukat") || q.includes("avocado")) && (pName.includes("alpukat") || pDesc.includes("avocado"))) score += 10;
+    if ((q.includes("sharing") || q.includes("berdua") || q.includes("rame")) && pCat.includes("dimsum")) score += 6;
 
     return { product: p, score };
   });
 
   scored.sort((a, b) => b.score - a.score);
-  const best = scored.filter((item) => item.score > 0).slice(0, 3).map((item) => ({
-    productId: item.product.id,
-    matchReason: `Pilihan hidangan lezat "${item.product.name}" yang paling pas dengan apa yang kamu cari!`,
-  }));
+  const matched = scored.filter((item) => item.score > 0);
+
+  // If user specified concrete culinary keywords (not just a category/price query) and NONE matched, return not found
+  if (matched.length === 0 && culinaryTokens.length > 0) {
+    return {
+      interpretedMood: `Menu tidak ditemukan untuk "${query}". Tidak ada hidangan di Resto Mayo yang sesuai dengan kriteria tersebut.`,
+      notFound: true,
+      matches: [],
+    };
+  }
+
+  // If user only queried category and/or price (e.g. "minuman dibawah 20 ribu"), return matching eligible items
+  const finalSelection = (matched.length > 0 ? matched.map((m) => m.product) : eligible)
+    .slice(0, 3)
+    .map((p) => ({
+      productId: p.id,
+      matchReason: `Pilihan "${p.name}" (Rp ${Number(p.price).toLocaleString("id-ID")}) sesuai dengan kriteria pencarianmu!`,
+    }));
 
   return {
-    interpretedMood: `Pencarian menu sesuai keinginanmu: "${query}"`,
-    matches: best.length > 0 ? best : available.slice(0, 2).map((p) => ({
-      productId: p.id,
-      matchReason: `Menu favorit Resto Mayo "${p.name}" yang sangat direkomendasikan untuk dicoba!`,
-    })),
+    interpretedMood: `Rekomendasi menu untuk: "${query}"`,
+    notFound: false,
+    matches: finalSelection,
   };
 }
 
@@ -429,6 +577,18 @@ Return STRICTLY a JSON object with this exact structure, with NO markdown backti
         return NextResponse.json({ error: "Query is required" }, { status: 400 });
       }
 
+      const constraints = extractQueryConstraints(query);
+
+      // Fast deterministic check: if strict category/price constraints rule out all items in catalog
+      const eligibleItems = (allProducts || []).filter((p: any) => matchesConstraints(p, constraints));
+      if (eligibleItems.length === 0) {
+        return NextResponse.json({
+          interpretedMood: formatConstraintNotFoundReason(query, constraints),
+          notFound: true,
+          matches: [],
+        });
+      }
+
       try {
         const productCatalog = (allProducts || [])
           .map(
@@ -437,7 +597,7 @@ Return STRICTLY a JSON object with this exact structure, with NO markdown backti
           )
           .join("\n");
 
-        const copilotPrompt = `You are "Resto Mayo Food Copilot", an AI culinary assistant helping customers find the ideal meal based on their mood, cravings, budget, dietary needs, or manual search keywords.
+        const copilotPrompt = `You are "Resto Mayo Food Copilot", a precise and smart AI culinary assistant helping customers find the ideal meal based on their mood, cravings, budget, price constraints, dietary needs, or manual search keywords.
 
 Customer Search Request:
 "${query}"
@@ -445,14 +605,24 @@ Customer Search Request:
 Resto Mayo Available Products:
 ${productCatalog}
 
-TASK:
-1. Interpret what the customer desires (whether it is a full sentence like "pengen kuah hangat", or simple keywords like "ayam", "mie", "es teh", "minuman", "jus", "dimsum", "pedas").
-2. Select 1 to 4 best matching items from the catalog. You MUST ALWAYS recommend at least 1-3 matching or closely related items from the available products. Do NOT return an empty matches list.
-3. For each recommendation, provide an appetizing explanation in Indonesian (1-2 sentences) explaining why this dish fits what they asked for.
+TASK & CRITICAL RULES:
+1. Carefully analyze what the customer desires:
+   - Price constraints: e.g. "di atas" / "diatas" / "lebih dari" / ">" (price must be greater than X), "di bawah" / "dibawah" / "kurang dari" / "<" / "budget" (price must be less than or equal to X), price range (X - Y), or "X ribuan".
+   - Category constraints: e.g. "minuman" (drinks/beverages), "makanan" (food/main course), "dimsum" (dimsum/snacks).
+   - Ingredients / flavor / dietary: e.g. vegetarian, spicy, cheese, halal, cold, warm, etc.
+
+2. STRICT FILTERING RULES:
+   - ONLY recommend products from the catalog that truly satisfy the customer's constraints.
+   - If the customer specifies a price or category condition (e.g. "minuman diatas 50 ribuan"), you MUST ONLY select items that strictly satisfy that condition.
+   - CRITICAL: If NO products in the catalog satisfy the customer's criteria (e.g. all drinks are under Rp 50.000, or a requested food doesn't exist at Resto Mayo), you MUST return an EMPTY matches array: "matches": [].
+   - NEVER suggest or force items that violate the customer's price or category criteria.
+
+3. For matching recommendations, provide an appetizing explanation in Indonesian (1-2 sentences) explaining why this dish fits what they asked for.
+4. "interpretedMood": Provide a concise explanation in Indonesian of what was searched and the result. If no items match, explain why politely in Indonesian.
 
 Return STRICTLY a JSON object with this exact structure, with NO markdown backticks:
 {
-  "interpretedMood": "Short summary in Indonesian of what the customer is craving or looking for",
+  "interpretedMood": "Short explanation in Indonesian of what the customer is craving or looking for",
   "matches": [
     {
       "productId": <number ID from catalog>,
@@ -463,7 +633,26 @@ Return STRICTLY a JSON object with this exact structure, with NO markdown backti
 
         const raw = await callGemini(copilotPrompt);
         const parsed = JSON.parse(cleanJsonOutput(raw));
-        return NextResponse.json(parsed);
+
+        // Authoritative server-side constraint verification on AI output
+        const verifiedMatches = (parsed.matches || []).filter((m: any) => {
+          const prod = (allProducts || []).find((p: any) => Number(p.id) === Number(m.productId));
+          return prod && matchesConstraints(prod, constraints);
+        });
+
+        if (verifiedMatches.length === 0) {
+          return NextResponse.json({
+            interpretedMood: parsed.interpretedMood || formatConstraintNotFoundReason(query, constraints),
+            notFound: true,
+            matches: [],
+          });
+        }
+
+        return NextResponse.json({
+          interpretedMood: parsed.interpretedMood || `Rekomendasi menu untuk: "${query}"`,
+          notFound: false,
+          matches: verifiedMatches,
+        });
       } catch (copilotErr) {
         console.warn("Using food-copilot fallback:", copilotErr);
         return NextResponse.json(fallbackFoodCopilot(query, allProducts));
