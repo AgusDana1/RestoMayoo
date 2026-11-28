@@ -28,13 +28,42 @@ interface KitchenOrder {
   } | null;
 }
 
+function getElapsedMinutes(dateStr: string) {
+  return Math.floor((Date.now() - new Date(dateStr).getTime()) / 60000);
+}
+
 function getTimeAgo(dateStr: string) {
-  const diffMs = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diffMs / 60000);
+  const mins = getElapsedMinutes(dateStr);
   if (mins < 1) return "Just now";
   if (mins < 60) return `${mins}m ago`;
   const hours = Math.floor(mins / 60);
   return `${hours}h ago`;
+}
+
+function playNewOrderChime() {
+  try {
+    const AudioCtx =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const playTone = (freq: number, start: number, dur: number) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
+      gain.gain.setValueAtTime(0.08, ctx.currentTime + start);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(ctx.currentTime + start);
+      osc.stop(ctx.currentTime + start + dur);
+    };
+    playTone(659.25, 0, 0.25); // E5
+    playTone(880, 0.18, 0.35); // A5
+  } catch {
+    // Ignore audio context autoplay errors
+  }
 }
 
 export default function KitchenPage() {
@@ -42,17 +71,30 @@ export default function KitchenPage() {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [loading, setLoading] = useState<boolean>(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
+  const knownOrderIdsRef = React.useRef<Set<number> | null>(null);
 
   const fetchKitchenOrders = React.useCallback(async () => {
     try {
       const res = await fetch("/api/orders?kitchen=true");
       if (res.ok) {
-        const data = await res.json();
+        const data: KitchenOrder[] = await res.json();
         // Sort FIFO: oldest order first
         data.sort(
           (a: KitchenOrder, b: KitchenOrder) =>
             new Date(a.ordered_at).getTime() - new Date(b.ordered_at).getTime()
         );
+
+        const currentIds = new Set(data.map((o) => o.id));
+        if (knownOrderIdsRef.current !== null && soundEnabled) {
+          const hasNewPending = data.some(
+            (o) => o.status === "pending" && !knownOrderIdsRef.current?.has(o.id)
+          );
+          if (hasNewPending) {
+            playNewOrderChime();
+          }
+        }
+        knownOrderIdsRef.current = currentIds;
         setOrders(data);
       }
     } catch (e) {
@@ -60,7 +102,7 @@ export default function KitchenPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [soundEnabled]);
 
   useEffect(() => {
     fetchKitchenOrders();
@@ -124,7 +166,20 @@ export default function KitchenPage() {
           </p>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-2">
+          <button
+            type="button"
+            onClick={() => setSoundEnabled((prev) => !prev)}
+            className={`inline-flex items-center space-x-1.5 px-3.5 py-2.5 rounded-2xl text-xs font-bold border transition-colors cursor-pointer ${
+              soundEnabled
+                ? "bg-emerald-50 border-emerald-200 text-emerald-800 hover:bg-emerald-100"
+                : "bg-stone-100 border-stone-200 text-stone-500 hover:bg-stone-200"
+            }`}
+          >
+            <span>{soundEnabled ? "🔔" : "🔕"}</span>
+            <span>{soundEnabled ? "Sound On" : "Muted"}</span>
+          </button>
+
           <button
             onClick={() => fetchKitchenOrders()}
             className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-2xl bg-white hover:bg-resto-yellow-50 text-stone-700 font-bold text-xs border border-resto-yellow-200 transition-colors shadow-2xs cursor-pointer"
@@ -279,7 +334,14 @@ export default function KitchenPage() {
                     </span>
                   </div>
                   <div className="text-right">
-                    <span className="text-[11px] font-bold block">{getTimeAgo(order.ordered_at)}</span>
+                    <div className="flex items-center justify-end space-x-1">
+                      {order.status !== "ready" && getElapsedMinutes(order.ordered_at) >= 15 && (
+                        <span className="px-1.5 py-0.5 rounded bg-rose-600 text-white text-[9px] font-black animate-pulse">
+                          ⚠️ SLA &gt;15m
+                        </span>
+                      )}
+                      <span className="text-[11px] font-bold block">{getTimeAgo(order.ordered_at)}</span>
+                    </div>
                     <span className="text-[10px] opacity-90 font-medium">{order.customer_name}</span>
                   </div>
                 </div>

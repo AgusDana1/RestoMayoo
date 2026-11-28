@@ -22,6 +22,7 @@ export default function AdminLayout({
     { href: "/admin/dashboard", label: "Dashboard", icon: "📊" },
     { href: "/admin/kitchen", label: "Kitchen (KDS)", icon: "🍳" },
     { href: "/admin/orders", label: "Orders", icon: "📋" },
+    { href: "/admin/tables", label: "Tables", icon: "🪑" },
     { href: "/admin/products", label: "Menu Items", icon: "🍔" },
     { href: "/admin/categories", label: "Categories", icon: "🏷️" },
     { href: "/admin/qr", label: "Table QR", icon: "📱" },

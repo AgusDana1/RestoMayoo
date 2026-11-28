@@ -61,7 +61,7 @@ export async function POST(request: Request) {
     const category_id = parsePositiveInt(body.category_id);
     const price = parseFloat(body.price);
     const description = sanitizeText(body.description, 500);
-    const image = typeof body.image === "string" ? body.image.trim().slice(0, 500) : null;
+    const image = typeof body.image === "string" ? body.image.trim().slice(0, 65000) : null;
     const is_available = body.is_available !== undefined ? Boolean(body.is_available) : true;
 
     if (!name || !category_id || isNaN(price) || price < 0) {

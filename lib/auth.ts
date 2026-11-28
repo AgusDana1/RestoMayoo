@@ -8,8 +8,39 @@ const SESSION_SECRET =
   "resto-mayo-secure-secret-token-key-2026-c7f8a49e-d301";
 
 /**
+ * Hash a password using Node's built-in scrypt with a random 16-byte salt.
+ * Format: `scrypt:<saltHex>:<hashHex>`
+ */
+export function hashPassword(password: string): string {
+  const salt = crypto.randomBytes(16).toString("hex");
+  const derived = crypto.scryptSync(password, salt, 64).toString("hex");
+  return `scrypt:${salt}:${derived}`;
+}
+
+/**
+ * Verify a password against either a `scrypt:<salt>:<hash>` string or a legacy plaintext password.
+ */
+export function verifyPassword(password: string, stored: string): boolean {
+  if (!stored) return false;
+  if (stored.startsWith("scrypt:")) {
+    const parts = stored.split(":");
+    if (parts.length !== 3) return false;
+    const [, salt, hashHex] = parts;
+    const derived = crypto.scryptSync(password, salt, 64);
+    const storedBuf = Buffer.from(hashHex, "hex");
+    if (derived.length !== storedBuf.length) return false;
+    return crypto.timingSafeEqual(derived, storedBuf);
+  }
+  // Legacy plaintext fallback for existing seeded accounts
+  const a = Buffer.from(password, "utf-8");
+  const b = Buffer.from(stored, "utf-8");
+  if (a.length !== b.length) return false;
+  return crypto.timingSafeEqual(a, b);
+}
+
+/**
  * Generate a cryptographically signed session token:
- * format: `${userId}.${timestamp}.${signature}`
+ * format: `${userId}:${email}:${timestamp}:${signature}`
  */
 export function createAdminToken(userId: number, email: string): string {
   const timestamp = Date.now();

@@ -27,6 +27,8 @@ export default function AdminProductsPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [submitting, setSubmitting] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
 
   // Form State
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -284,6 +286,41 @@ export default function AdminProductsPage() {
     return `Rp ${Number(amount).toLocaleString("id-ID")}`;
   };
 
+  const handleImageFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const maxW = 480;
+        const scale = img.width > maxW ? maxW / img.width : 1;
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          setFormImage(canvas.toDataURL("image/jpeg", 0.72));
+        }
+      };
+      if (typeof reader.result === "string") {
+        img.src = reader.result;
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const filteredProducts = products.filter((p) => {
+    const matchCategory =
+      categoryFilter === "all" || p.category_id.toString() === categoryFilter;
+    const matchSearch =
+      !searchQuery.trim() ||
+      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (p.description || "").toLowerCase().includes(searchQuery.toLowerCase());
+    return matchCategory && matchSearch;
+  });
+
   return (
     <div className="space-y-6">
       
@@ -321,10 +358,53 @@ export default function AdminProductsPage() {
         </div>
       </div>
 
+      {/* Search & Category Filter Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-3xl border border-resto-yellow-200 shadow-xs">
+        <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+          <button
+            type="button"
+            onClick={() => setCategoryFilter("all")}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap cursor-pointer ${
+              categoryFilter === "all"
+                ? "bg-resto-red-700 text-white"
+                : "bg-resto-yellow-50 text-stone-600 hover:bg-resto-yellow-100 border border-resto-yellow-200/60"
+            }`}
+          >
+            All ({products.length})
+          </button>
+          {categories.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              onClick={() => setCategoryFilter(c.id.toString())}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap cursor-pointer ${
+                categoryFilter === c.id.toString()
+                  ? "bg-resto-red-700 text-white"
+                  : "bg-resto-yellow-50 text-stone-600 hover:bg-resto-yellow-100 border border-resto-yellow-200/60"
+              }`}
+            >
+              {c.name}
+            </button>
+          ))}
+        </div>
+
+        <div className="w-full sm:w-64">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search dish name or description..."
+            className="w-full px-3.5 py-2 rounded-xl border border-resto-yellow-200 text-xs focus:outline-none focus:ring-2 focus:ring-resto-red-500 bg-white"
+          />
+        </div>
+      </div>
+
       {/* Product List */}
       <div className="bg-white rounded-3xl border border-resto-yellow-200 shadow-xs overflow-hidden">
         {loading ? (
           <div className="py-20 text-center text-xs text-stone-400">Loading dishes list...</div>
+        ) : filteredProducts.length === 0 ? (
+          <div className="py-16 text-center text-xs text-stone-400">No dishes matching your filter.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
@@ -338,7 +418,7 @@ export default function AdminProductsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-resto-yellow-100">
-                {products.map((product) => (
+                {filteredProducts.map((product) => (
                   <tr key={product.id} className="hover:bg-resto-yellow-50/30 transition-colors">
                     <td className="py-3 px-4">
                       <div className="flex items-center space-x-3">
@@ -461,12 +541,23 @@ export default function AdminProductsPage() {
               </div>
 
               <div>
-                <label className="block font-bold text-stone-700 uppercase mb-1">Dish Photo URL</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block font-bold text-stone-700 uppercase">Dish Photo URL or Upload</label>
+                  <label className="px-2.5 py-1 rounded-xl bg-resto-yellow-100 hover:bg-resto-yellow-200 text-resto-yellow-950 font-bold text-[10px] border border-resto-yellow-300 cursor-pointer">
+                    📁 Upload Image
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageFileUpload}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
                 <input
-                  type="url"
+                  type="text"
                   value={formImage}
                   onChange={(e) => setFormImage(e.target.value)}
-                  placeholder="https://images.unsplash.com/..."
+                  placeholder="https://images.unsplash.com/... or upload a file"
                   className="w-full px-3.5 py-2.5 rounded-2xl border border-resto-yellow-200 focus:outline-none focus:ring-2 focus:ring-resto-red-500 text-xs bg-white"
                 />
               </div>

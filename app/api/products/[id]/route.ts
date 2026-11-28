@@ -39,7 +39,7 @@ export async function PATCH(
       data.price = price;
     }
     if (body.image !== undefined) {
-      data.image = typeof body.image === "string" ? body.image.trim().slice(0, 500) : null;
+      data.image = typeof body.image === "string" ? body.image.trim().slice(0, 65000) : null;
     }
     if (body.is_available !== undefined) {
       data.is_available = Boolean(body.is_available);

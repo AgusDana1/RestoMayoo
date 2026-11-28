@@ -16,6 +16,8 @@ export default function AdminCategoriesPage() {
   const [newCatName, setNewCatName] = useState<string>("");
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string>("");
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingName, setEditingName] = useState<string>("");
 
   const fetchCategories = React.useCallback(async () => {
     try {
@@ -57,6 +59,42 @@ export default function AdminCategoriesPage() {
       setErrorMsg(err.message || "Failed to add category.");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleSaveEdit = async (id: number) => {
+    if (!editingName.trim()) return;
+    try {
+      const res = await fetch(`/api/categories/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: editingName.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || "Gagal memperbarui kategori.");
+        return;
+      }
+      setEditingId(null);
+      setEditingName("");
+      await fetchCategories();
+    } catch {
+      alert("Terjadi kesalahan saat memperbarui kategori.");
+    }
+  };
+
+  const handleDeleteCategory = async (cat: Category) => {
+    if (!window.confirm(`Hapus kategori "${cat.name}"?`)) return;
+    try {
+      const res = await fetch(`/api/categories/${cat.id}`, { method: "DELETE" });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || "Gagal menghapus kategori.");
+        return;
+      }
+      await fetchCategories();
+    } catch {
+      alert("Terjadi kesalahan saat menghapus kategori.");
     }
   };
 
@@ -137,17 +175,67 @@ export default function AdminCategoriesPage() {
             ) : (
               <div className="divide-y divide-resto-yellow-100">
                 {categories.map((cat) => (
-                  <div key={cat.id} className="py-3.5 flex items-center justify-between text-xs hover:bg-resto-yellow-50/20 transition-colors">
+                  <div key={cat.id} className="py-3.5 flex flex-wrap items-center justify-between gap-3 text-xs hover:bg-resto-yellow-50/20 transition-colors">
                     <div className="flex items-center space-x-3">
                       <span className="w-8 h-8 rounded-xl bg-resto-yellow-100 text-resto-yellow-900 border border-resto-yellow-300 font-bold flex items-center justify-center font-poppins shadow-2xs">
                         #{cat.id}
                       </span>
-                      <span className="font-bold text-sm text-stone-900 font-poppins">{cat.name}</span>
+                      {editingId === cat.id ? (
+                        <input
+                          type="text"
+                          value={editingName}
+                          onChange={(e) => setEditingName(e.target.value)}
+                          className="px-3 py-1.5 rounded-xl border border-resto-yellow-300 text-xs font-bold text-stone-900 focus:outline-none focus:ring-2 focus:ring-resto-red-500"
+                        />
+                      ) : (
+                        <span className="font-bold text-sm text-stone-900 font-poppins">{cat.name}</span>
+                      )}
                     </div>
 
-                    <span className="px-3 py-1 rounded-full text-xs font-semibold bg-resto-yellow-50 text-stone-700 border border-resto-yellow-200">
-                      {cat._count?.products || 0} Linked Dishes
-                    </span>
+                    <div className="flex items-center space-x-2">
+                      <span className="px-3 py-1 rounded-full text-xs font-semibold bg-resto-yellow-50 text-stone-700 border border-resto-yellow-200">
+                        {cat._count?.products || 0} Linked Dishes
+                      </span>
+
+                      {editingId === cat.id ? (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => handleSaveEdit(cat.id)}
+                            className="px-2.5 py-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] cursor-pointer"
+                          >
+                            Save
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditingId(null)}
+                            className="px-2.5 py-1 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-[11px] cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingId(cat.id);
+                              setEditingName(cat.name);
+                            }}
+                            className="px-2.5 py-1 rounded-xl bg-resto-yellow-100 hover:bg-resto-yellow-200 text-resto-yellow-950 font-bold text-[11px] border border-resto-yellow-300 cursor-pointer"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteCategory(cat)}
+                            className="px-2.5 py-1 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[11px] border border-rose-200 cursor-pointer"
+                          >
+                            Delete
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>

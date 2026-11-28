@@ -29,6 +29,17 @@ interface DashboardStats {
       status: string;
     } | null;
   }[];
+  topProducts?: {
+    name: string;
+    quantity: number;
+    revenue: number;
+  }[];
+  dailyRevenue?: {
+    date: string;
+    label: string;
+    revenue: number;
+    orders: number;
+  }[];
 }
 
 interface ReviewItem {
@@ -73,6 +84,7 @@ interface ExecutiveDigest {
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [dateRange, setDateRange] = useState<"all" | "today" | "7d" | "30d">("all");
 
   // Reviews & AI Sentiment States
   const [reviews, setReviews] = useState<ReviewItem[]>([]);
@@ -83,7 +95,7 @@ export default function AdminDashboardPage() {
 
   const fetchStats = React.useCallback(async () => {
     try {
-      const res = await fetch("/api/admin/stats");
+      const res = await fetch(`/api/admin/stats?range=${dateRange}`);
       if (res.ok) {
         const data = await res.json();
         setStats(data);
@@ -93,7 +105,7 @@ export default function AdminDashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [dateRange]);
 
   const fetchReviews = React.useCallback(async () => {
     try {
@@ -145,6 +157,31 @@ export default function AdminDashboardPage() {
     return `Rp ${Number(amount).toLocaleString("id-ID")}`;
   };
 
+  const handleExportCsv = () => {
+    if (!stats) return;
+    const rows = [
+      ["Order Number", "Table", "Customer Name", "Total (IDR)", "Payment Method", "Payment Status", "Order Status", "Created At"],
+      ...(stats.recentOrders || []).map((o) => [
+        o.order_number,
+        o.table?.table_code || "",
+        `"${(o.customer_name || "").replace(/"/g, '""')}"`,
+        String(o.total_amount),
+        o.payment?.method || "",
+        o.payment?.status || "",
+        o.status,
+        o.created_at,
+      ]),
+    ];
+    const csvContent = rows.map((r) => r.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `restomayo-report-${dateRange}-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   if (loading) {
     return (
       <div className="py-20 text-center space-y-3">
@@ -172,7 +209,38 @@ export default function AdminDashboardPage() {
           </p>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="inline-flex bg-white p-1 rounded-2xl border border-resto-yellow-200 shadow-2xs">
+            {[
+              { id: "all", label: "All Time" },
+              { id: "today", label: "Today" },
+              { id: "7d", label: "7 Days" },
+              { id: "30d", label: "30 Days" },
+            ].map((opt) => (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => setDateRange(opt.id as "all" | "today" | "7d" | "30d")}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  dateRange === opt.id
+                    ? "bg-resto-red-700 text-white shadow-2xs"
+                    : "text-stone-600 hover:bg-resto-yellow-50"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={handleExportCsv}
+            className="inline-flex items-center space-x-1.5 px-4 py-2.5 rounded-2xl bg-white hover:bg-resto-yellow-50 text-stone-700 border border-resto-yellow-200 font-bold text-xs shadow-2xs cursor-pointer"
+          >
+            <span>📥</span>
+            <span>Export CSV</span>
+          </button>
+
           <Link
             href="/admin/kitchen"
             className="inline-flex items-center space-x-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-resto-red-600 via-resto-red-700 to-resto-yellow-600 hover:from-resto-red-700 hover:to-resto-yellow-700 text-white font-bold text-xs shadow-md shadow-resto-red-600/20 transition-all cursor-pointer active:scale-95"
@@ -340,6 +408,111 @@ export default function AdminDashboardPage() {
             Manage Menu &rarr;
           </span>
         </Link>
+      </div>
+
+      {/* Analytics: Daily Revenue Trend & Top Selling Dishes */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Daily Revenue Bar Chart */}
+        <div className="bg-white rounded-3xl border border-resto-yellow-200 shadow-xs p-6 space-y-4">
+          <div className="flex items-center justify-between border-b border-resto-yellow-100 pb-3">
+            <div>
+              <h2 className="text-base font-bold text-stone-900 font-poppins">
+                Revenue Trend
+              </h2>
+              <p className="text-xs text-stone-400">
+                Daily paid revenue across recent operating days
+              </p>
+            </div>
+            <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-resto-yellow-100 text-resto-yellow-900">
+              {dateRange.toUpperCase()}
+            </span>
+          </div>
+
+          {!stats?.dailyRevenue || stats.dailyRevenue.length === 0 ? (
+            <div className="py-10 text-center text-xs text-stone-400">
+              No revenue data recorded in this period.
+            </div>
+          ) : (
+            <div className="flex items-end justify-between gap-2 h-44 pt-4">
+              {(() => {
+                const maxRev = Math.max(
+                  ...stats.dailyRevenue.map((d) => d.revenue),
+                  1
+                );
+                return stats.dailyRevenue.map((d) => {
+                  const pct = Math.max(8, Math.round((d.revenue / maxRev) * 100));
+                  return (
+                    <div
+                      key={d.date}
+                      className="flex-1 flex flex-col items-center justify-end h-full space-y-1.5 group"
+                    >
+                      <span className="text-[10px] font-bold text-stone-500 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                        {formatRupiah(d.revenue)}
+                      </span>
+                      <div className="w-full max-w-[40px] bg-resto-yellow-100 rounded-t-xl flex items-end h-28 overflow-hidden">
+                        <div
+                          style={{ height: `${pct}%` }}
+                          className="w-full bg-gradient-to-t from-resto-red-700 to-resto-yellow-500 rounded-t-xl transition-all"
+                          title={`${d.label}: ${formatRupiah(d.revenue)} (${d.orders} orders)`}
+                        ></div>
+                      </div>
+                      <span className="text-[10px] font-bold text-stone-600">
+                        {d.label}
+                      </span>
+                    </div>
+                  );
+                });
+              })()}
+            </div>
+          )}
+        </div>
+
+        {/* Top Selling Products */}
+        <div className="bg-white rounded-3xl border border-resto-yellow-200 shadow-xs p-6 space-y-4">
+          <div className="flex items-center justify-between border-b border-resto-yellow-100 pb-3">
+            <div>
+              <h2 className="text-base font-bold text-stone-900 font-poppins">
+                Top Selling Menu Items
+              </h2>
+              <p className="text-xs text-stone-400">
+                Most ordered dishes based on quantity sold
+              </p>
+            </div>
+            <span className="text-lg">🏆</span>
+          </div>
+
+          {!stats?.topProducts || stats.topProducts.length === 0 ? (
+            <div className="py-10 text-center text-xs text-stone-400">
+              No product sales recorded in this period.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {stats.topProducts.map((item, idx) => (
+                <div
+                  key={item.name}
+                  className="flex items-center justify-between p-3 rounded-2xl bg-resto-yellow-50/50 border border-resto-yellow-200/70"
+                >
+                  <div className="flex items-center space-x-3">
+                    <span className="w-7 h-7 rounded-xl bg-resto-red-700 text-white font-black text-xs flex items-center justify-center">
+                      #{idx + 1}
+                    </span>
+                    <div>
+                      <span className="font-bold text-xs sm:text-sm text-stone-900 block">
+                        {item.name}
+                      </span>
+                      <span className="text-[11px] text-stone-500">
+                        {item.quantity} portions sold
+                      </span>
+                    </div>
+                  </div>
+                  <span className="font-black text-xs sm:text-sm text-resto-red-700">
+                    {formatRupiah(item.revenue)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Recent Orders Section */}

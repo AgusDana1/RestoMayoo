@@ -30,6 +30,8 @@ interface Order {
     method: string;
     status: string;
     amount: number | string;
+    payment_reference?: string | null;
+    proof_image?: string | null;
     paid_at?: string | null;
   } | null;
 }
@@ -41,6 +43,7 @@ export default function AdminOrdersPage() {
   const [search, setSearch] = useState<string>("");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [deletingOrderNumber, setDeletingOrderNumber] = useState<string | null>(null);
+  const [updatingPaymentOrder, setUpdatingPaymentOrder] = useState<string | null>(null);
 
   const fetchOrders = React.useCallback(async () => {
     try {
@@ -108,6 +111,32 @@ export default function AdminOrdersPage() {
     }
   };
 
+  const handleUpdatePaymentStatus = async (orderNumber: string, status: "paid" | "pending") => {
+    try {
+      setUpdatingPaymentOrder(orderNumber);
+      const res = await fetch(`/api/payments/${orderNumber}/confirm`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        await fetchOrders();
+        if (selectedOrder?.order_number === orderNumber && data.order) {
+          setSelectedOrder(data.order);
+        }
+      }
+    } catch (e) {
+      console.error("Error updating payment:", e);
+    } finally {
+      setUpdatingPaymentOrder(null);
+    }
+  };
+
+  const handlePrintReceipt = () => {
+    window.print();
+  };
+
   const formatRupiah = (amount: number | string) => {
     return `Rp ${Number(amount).toLocaleString("id-ID")}`;
   };
@@ -123,7 +152,8 @@ export default function AdminOrdersPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <>
+    <div className="space-y-6 no-print">
       
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-resto-yellow-200/80 pb-6">
@@ -232,13 +262,26 @@ export default function AdminOrdersPage() {
                       {formatRupiah(order.total_amount)}
                     </td>
                     <td className="py-3.5 px-4">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${
-                        order.payment?.status === "paid"
-                          ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
-                          : "bg-resto-yellow-100 text-resto-yellow-900 border border-resto-yellow-300"
-                      }`}>
-                        {order.payment?.status === "paid" ? "Paid" : "Pending"} ({order.payment?.method})
-                      </span>
+                      <div className="flex items-center space-x-1.5">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${
+                          order.payment?.status === "paid"
+                            ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                            : "bg-resto-yellow-100 text-resto-yellow-900 border border-resto-yellow-300"
+                        }`}>
+                          {order.payment?.status === "paid" ? "Paid" : "Pending"} ({order.payment?.method})
+                        </span>
+                        {order.payment && order.payment.status !== "paid" && (
+                          <button
+                            type="button"
+                            disabled={updatingPaymentOrder === order.order_number}
+                            onClick={() => handleUpdatePaymentStatus(order.order_number, "paid")}
+                            className="px-2 py-0.5 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] cursor-pointer disabled:opacity-50"
+                            title="Konfirmasi Pembayaran Lunas"
+                          >
+                            ✓ Confirm
+                          </button>
+                        )}
+                      </div>
                     </td>
                     <td className="py-3.5 px-4">
                       <select
@@ -338,7 +381,66 @@ export default function AdminOrdersPage() {
               </span>
             </div>
 
-            <div className="flex space-x-2 pt-2">
+            {/* Payment Verification Panel */}
+            {selectedOrder.payment && (
+              <div className="p-3.5 rounded-2xl bg-stone-50 border border-stone-200 space-y-2 text-xs">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-[10px] font-bold uppercase text-stone-400 block">
+                      Payment Verification ({selectedOrder.payment.method.toUpperCase()})
+                    </span>
+                    <span className={`font-bold ${selectedOrder.payment.status === "paid" ? "text-emerald-700" : "text-amber-700"}`}>
+                      {selectedOrder.payment.status === "paid" ? "✓ Paid & Verified" : "⏳ Awaiting Cashier Confirmation"}
+                    </span>
+                    {selectedOrder.payment.payment_reference && (
+                      <span className="block text-[10px] text-stone-500 font-mono">
+                        Ref: {selectedOrder.payment.payment_reference}
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    disabled={updatingPaymentOrder === selectedOrder.order_number}
+                    onClick={() =>
+                      handleUpdatePaymentStatus(
+                        selectedOrder.order_number,
+                        selectedOrder.payment?.status === "paid" ? "pending" : "paid"
+                      )
+                    }
+                    className={`px-3 py-1.5 rounded-xl font-bold text-[11px] cursor-pointer disabled:opacity-50 ${
+                      selectedOrder.payment.status === "paid"
+                        ? "bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300"
+                        : "bg-emerald-600 hover:bg-emerald-700 text-white"
+                    }`}
+                  >
+                    {selectedOrder.payment.status === "paid" ? "Revert to Pending" : "✓ Mark as Paid"}
+                  </button>
+                </div>
+
+                {selectedOrder.payment.proof_image && (
+                  <div className="pt-2 border-t border-stone-200">
+                    <span className="text-[10px] font-bold uppercase text-stone-500 block mb-1">
+                      Payment Proof:
+                    </span>
+                    <img
+                      src={selectedOrder.payment.proof_image}
+                      alt="Payment Proof"
+                      className="max-h-40 rounded-xl border border-stone-200 object-contain"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="flex flex-wrap gap-2 pt-2 no-print">
+              <button
+                type="button"
+                onClick={handlePrintReceipt}
+                className="px-3.5 py-2.5 rounded-2xl bg-stone-800 hover:bg-stone-900 text-white font-bold text-xs cursor-pointer flex items-center justify-center space-x-1"
+              >
+                <span>🖨️</span>
+                <span>Print Receipt</span>
+              </button>
               <Link
                 href={`/payment/${selectedOrder.order_number}`}
                 target="_blank"
@@ -369,5 +471,52 @@ export default function AdminOrdersPage() {
       )}
 
     </div>
+
+      {/* Printable Thermal Receipt (Hidden on screen, visible on print) */}
+      {selectedOrder && (
+        <div className="hidden print:block p-4 max-w-xs mx-auto font-mono text-xs text-black">
+          <div className="text-center border-b border-dashed border-black pb-2 mb-2">
+            <h2 className="text-base font-bold">RESTO MAYO</h2>
+            <p className="text-[10px]">Authentic Casual Dining</p>
+            <p className="text-[10px] mt-1">Order #{selectedOrder.order_number}</p>
+            <p className="text-[10px]">
+              Table: {selectedOrder.table?.table_code} | {selectedOrder.customer_name}
+            </p>
+          </div>
+          <div className="space-y-1 border-b border-dashed border-black pb-2 mb-2">
+            {selectedOrder.order_items.map((item) => (
+              <div key={item.id}>
+                <div className="flex justify-between">
+                  <span>
+                    {item.product.name} x{item.quantity}
+                  </span>
+                  <span>{formatRupiah(item.total)}</span>
+                </div>
+                {item.notes && <div className="text-[10px] italic">Note: {item.notes}</div>}
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-between font-bold text-sm">
+            <span>TOTAL</span>
+            <span>{formatRupiah(selectedOrder.total_amount)}</span>
+          </div>
+          <div className="text-center text-[10px] mt-3 pt-2 border-t border-dashed border-black">
+            <p>
+              Payment: {selectedOrder.payment?.method?.toUpperCase()} (
+              {selectedOrder.payment?.status?.toUpperCase()})
+            </p>
+            <p className="mt-1">Thank you for dining with us!</p>
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        @media print {
+          header, nav, .no-print {
+            display: none !important;
+          }
+        }
+      `}</style>
+    </>
   );
 }

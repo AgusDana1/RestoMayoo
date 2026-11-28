@@ -7,8 +7,8 @@ import RestoMayoLogo from "../../../components/RestoMayoLogo";
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState<string>("admin234@restomayo.com");
-  const [password, setPassword] = useState<string>("password");
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string>("");
 

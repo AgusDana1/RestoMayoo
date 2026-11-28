@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../../../lib/prisma";
 import { checkRateLimit, getClientIp, sanitizePlainString } from "../../../../../lib/security";
+import { isAdminAuthenticated } from "../../../../../lib/auth";
 
 export async function POST(
   request: Request,
@@ -69,6 +70,75 @@ export async function POST(
     console.error("Error confirming payment:", error);
     return NextResponse.json(
       { error: "Failed to confirm payment" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * Admin-only endpoint to verify or update payment status (paid / pending / failed)
+ */
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ orderNumber: string }> }
+) {
+  if (!isAdminAuthenticated(request)) {
+    return NextResponse.json(
+      { error: "Access denied: You must be logged in as an administrator" },
+      { status: 401 }
+    );
+  }
+
+  try {
+    const { orderNumber } = await params;
+    const cleanOrderNumber = sanitizePlainString(orderNumber, 30);
+    const body = await request.json();
+    const nextPaymentStatus = body.status === "pending" || body.status === "failed" ? body.status : "paid";
+
+    const order = await prisma.order.findUnique({
+      where: { order_number: cleanOrderNumber },
+      include: { payment: true },
+    });
+
+    if (!order || !order.payment) {
+      return NextResponse.json(
+        { error: "Order or payment record not found" },
+        { status: 404 }
+      );
+    }
+
+    const updatedPayment = await prisma.payment.update({
+      where: { id: order.payment.id },
+      data: {
+        status: nextPaymentStatus,
+        paid_at: nextPaymentStatus === "paid" ? new Date() : null,
+      },
+    });
+
+    const updatedOrder = await prisma.order.update({
+      where: { id: order.id },
+      data: {
+        status:
+          nextPaymentStatus === "paid" && order.status === "pending"
+            ? "processing"
+            : order.status,
+      },
+      include: {
+        table: true,
+        order_items: { include: { product: true } },
+        payment: true,
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      order: updatedOrder,
+      payment: updatedPayment,
+    });
+  } catch (error) {
+    console.error("Error updating payment status:", error);
+    return NextResponse.json(
+      { error: "Failed to update payment status" },
       { status: 500 }
     );
   }
