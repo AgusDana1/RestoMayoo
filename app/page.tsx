@@ -74,6 +74,17 @@ export default function HomePage() {
   const [isTableModalOpen, setIsTableModalOpen] = useState<boolean>(false);
   const [isCopilotOpen, setIsCopilotOpen] = useState<boolean>(false);
   const [customizingProduct, setCustomizingProduct] = useState<Product | null>(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [itemsPerPage, setItemsPerPage] = useState<number>(8);
+
+  useEffect(() => {
+    const updatePageSize = () => {
+      setItemsPerPage(window.innerWidth < 640 ? 6 : 8);
+    };
+    updatePageSize();
+    window.addEventListener("resize", updatePageSize);
+    return () => window.removeEventListener("resize", updatePageSize);
+  }, []);
 
   const {
     cart,
@@ -125,6 +136,25 @@ export default function HomePage() {
       return matchCategory && matchSearch;
     });
   }, [products, selectedCategory, deferredSearchQuery]);
+
+  // Reset to page 1 when category or search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory, deferredSearchQuery]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / itemsPerPage));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+
+  const paginatedProducts = useMemo(() => {
+    const startIndex = (safeCurrentPage - 1) * itemsPerPage;
+    return filteredProducts.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredProducts, safeCurrentPage, itemsPerPage]);
+
+  const handlePageChange = (page: number) => {
+    const nextPage = Math.max(1, Math.min(page, totalPages));
+    setCurrentPage(nextPage);
+    document.getElementById("menu")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   // Featured Products (3-5 real dishes from database)
   const featuredProducts = useMemo(() => {
@@ -261,8 +291,8 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Right Column: Authentic Food Photography Hero Collage */}
-            <div className="lg:col-span-5 relative">
+            {/* Right Column: Authentic Food Photography Hero Collage (Hidden on mobile phones) */}
+            <div className="hidden sm:block lg:col-span-5 relative">
               <div className="relative rounded-3xl overflow-hidden shadow-xl border-4 border-white bg-[#F2EDE4] aspect-4/3 sm:aspect-square">
                 <img
                   src="https://images.unsplash.com/photo-1541529086526-db283c563270?w=800&q=80"
@@ -488,8 +518,9 @@ export default function HomePage() {
               <p className="text-xs text-[#8E7A6F]">Try searching another keyword or switch category filters.</p>
             </div>
           ) : (
+            <>
             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
-              {filteredProducts.map((product) => {
+              {paginatedProducts.map((product) => {
                 const badge = getProductBadge(product.name);
                 const cartQty = cart
                   .filter((item) => item.id === product.id)
@@ -567,6 +598,83 @@ export default function HomePage() {
                 );
               })}
             </div>
+
+            {/* Responsive Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="mt-8 sm:mt-10 pt-6 border-t border-[#EADBCA] flex flex-col sm:flex-row items-center justify-between gap-4">
+                <p className="text-xs text-[#5F4E44] font-medium text-center sm:text-left">
+                  Showing{" "}
+                  <span className="font-bold text-[#30251F]">
+                    {(safeCurrentPage - 1) * itemsPerPage + 1}
+                  </span>
+                  &ndash;
+                  <span className="font-bold text-[#30251F]">
+                    {Math.min(safeCurrentPage * itemsPerPage, filteredProducts.length)}
+                  </span>{" "}
+                  of{" "}
+                  <span className="font-bold text-[#30251F]">
+                    {filteredProducts.length}
+                  </span>{" "}
+                  dishes
+                </p>
+
+                <div className="flex items-center justify-center flex-wrap gap-1.5 sm:gap-2">
+                  <button
+                    type="button"
+                    disabled={safeCurrentPage === 1}
+                    onClick={() => handlePageChange(safeCurrentPage - 1)}
+                    className="px-3 py-2 rounded-xl bg-white border border-[#EADBCA] text-[#30251F] hover:bg-[#FEF8E9] disabled:opacity-40 disabled:pointer-events-none text-xs font-bold transition-colors cursor-pointer"
+                  >
+                    &larr; Prev
+                  </button>
+
+                  {Array.from({ length: totalPages }, (_, idx) => idx + 1)
+                    .filter((page) => {
+                      if (totalPages <= 5) return true;
+                      return (
+                        page === 1 ||
+                        page === totalPages ||
+                        Math.abs(page - safeCurrentPage) <= 1
+                      );
+                    })
+                    .map((page, idx, arr) => {
+                      const prevPage = arr[idx - 1];
+                      const showEllipsis = prevPage && page - prevPage > 1;
+                      return (
+                        <React.Fragment key={page}>
+                          {showEllipsis && (
+                            <span className="px-1.5 text-xs text-[#8E7A6F] font-bold">
+                              &hellip;
+                            </span>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => handlePageChange(page)}
+                            aria-current={safeCurrentPage === page ? "page" : undefined}
+                            className={`min-w-[34px] h-[34px] px-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                              safeCurrentPage === page
+                                ? "bg-[#D94B35] text-white shadow-xs"
+                                : "bg-white border border-[#EADBCA] text-[#5F4E44] hover:bg-[#FEF8E9]"
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        </React.Fragment>
+                      );
+                    })}
+
+                  <button
+                    type="button"
+                    disabled={safeCurrentPage === totalPages}
+                    onClick={() => handlePageChange(safeCurrentPage + 1)}
+                    className="px-3 py-2 rounded-xl bg-white border border-[#EADBCA] text-[#30251F] hover:bg-[#FEF8E9] disabled:opacity-40 disabled:pointer-events-none text-xs font-bold transition-colors cursor-pointer"
+                  >
+                    Next &rarr;
+                  </button>
+                </div>
+              </div>
+            )}
+            </>
           )}
 
         </div>
